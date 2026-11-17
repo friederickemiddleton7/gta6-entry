@@ -1,9 +1,7 @@
-// The game's rules and state, with no drawing and no browser in it: the player's paddle, the
-// pool of falling blocks and coins, spawning, collisions, score, lives and level. step() advances
-// one fixed step and returns what happened as bit flags, so the caller can react without the
-// world knowing about screens or sound. Nothing here allocates after createWorld returns.
-import { BLOCK, COIN, FIELD, LEVEL, LIVES, PLAYER, POOL_SIZE } from './config.js';
-
+// The city: geometry, lights and the collision boxes that go with them. buildWorld(scene, rng) puts
+// a night-time grid of roads, kerbed sidewalks and varied buildings into the scene and returns the
+// handles the rest of the game needs. Everything that repeats is drawn from an InstancedMesh, so the
+// whole city stays at a few dozen draw calls and the seeded rng decides every variation.
 export const KIND_BLOCK = 0;
 export const KIND_COIN = 1;
 
@@ -11,114 +9,619 @@ export const EVENT_HIT = 1;
 export const EVENT_COIN = 2;
 export const EVENT_OVER = 4;
 
-function overlaps(a, b) {
-  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+/** City layout, in metres. GRID x GRID blocks with PITCH between centres and ROAD wide streets. */
+const GRID = 6;
+const PITCH = 88;
+const ROAD = 16;
+const BLOCK_SIZE = PITCH - ROAD;
+const SIDEWALK_H = 0.18;
+const CITY = GRID * PITCH;
+const HALF = CITY / 2;
+const PARK = { x: -132, z: 132 };
+const WATER_Z = HALF + 58;
+
+const CONCRETE = [0x8d8c86, 0x9b9083, 0x7f7064, 0x69747d, 0x8d7c6b, 0xa19a8f, 0x5f6a73, 0x776e66];
+const GLASS = [0x4f6070, 0x3f5364, 0x596773, 0x4a5a62];
+const CAR_COLORS = [0x8b3232, 0x2f4f8b, 0xd6d6d2, 0x2f6b4f, 0x2b2b30, 0x9a7b32, 0x5b4a7a];
+const WINDOW_LIGHT = [0xffd9a0, 0xffe6bf, 0xf7c879, 0xfff0d0, 0xdfe9ff, 0x9fc4e8];
+const LEAVES = [0x2f5a3a, 0x2a5236, 0x376443, 0x305d3d, 0x284f33];
+
+/** mulberry32 again, only if a caller forgets the seeded generator: buildWorld must never call Math.random. */
+function fallbackRandom(seed) {
+  let a = seed | 0;
+  return function random() {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-export function createWorld(random) {
-  const player = { x: 0, y: FIELD.groundY - PLAYER.height, width: PLAYER.width, height: PLAYER.height, invulnerable: 0 };
-  const items = [];
-  for (let index = 0; index < POOL_SIZE; index += 1) {
-    items.push({ active: false, kind: KIND_BLOCK, x: 0, y: 0, width: 0, height: 0, speed: 0 });
+/** One palm: a leaning segmented trunk and six drooping fronds, all in one vertex-coloured geometry. */
+function makePalmGeometry(THREE) {
+  const parts = [];
+  const trunkHeight = 6.4;
+  for (let segment = 0; segment < 4; segment += 1) {
+    const radius = 0.32 - segment * 0.05;
+    const geometry = new THREE.CylinderGeometry(radius * 0.85, radius, trunkHeight / 4 + 0.12, 6);
+    geometry.translate(0, trunkHeight / 8 + segment * (trunkHeight / 4), 0);
+    geometry.translate(segment * 0.12, 0, 0);
+    parts.push(geometry, 0x6d5741);
   }
-  const state = { player, items, score: 0, lives: LIVES, level: 1, elapsed: 0, blockTimer: 0, coinTimer: 0 };
-
-  function reset() {
-    player.x = (FIELD.width - player.width) / 2;
-    player.invulnerable = 0;
-    for (const item of items) item.active = false;
-    state.score = 0;
-    state.lives = LIVES;
-    state.level = 1;
-    state.elapsed = 0;
-    state.blockTimer = BLOCK.interval;
-    state.coinTimer = COIN.interval;
+  const top = new THREE.Vector3(0.4, trunkHeight, 0);
+  for (let frond = 0; frond < 6; frond += 1) {
+    const angle = (frond / 6) * Math.PI * 2;
+    const geometry = new THREE.ConeGeometry(0.42, 3.4, 3);
+    geometry.scale(1, 0.16, 1);
+    geometry.rotateX(Math.PI / 2);
+    geometry.translate(0, 0, 1.7);
+    geometry.rotateZ(-0.42);
+    geometry.rotateY(angle);
+    geometry.translate(top.x, top.y - 0.1, top.z);
+    parts.push(geometry, frond % 2 === 0 ? 0x2f5d3c : 0x37694a);
   }
+  const merged = mergeColoured(THREE, parts);
+  return merged;
+}
 
-  function freeItem() {
-    for (let index = 0; index < items.length; index += 1) if (!items[index].active) return items[index];
-    return null;
-  }
-
-  function spawnBlock() {
-    const item = freeItem();
-    if (item === null) return;
-    item.active = true;
-    item.kind = KIND_BLOCK;
-    item.width = BLOCK.minWidth + random() * (BLOCK.maxWidth - BLOCK.minWidth);
-    item.height = BLOCK.height;
-    item.x = random() * (FIELD.width - item.width);
-    item.y = -item.height;
-    item.speed = BLOCK.speed + BLOCK.speedPerLevel * (state.level - 1) + random() * BLOCK.speedJitter;
-  }
-
-  function spawnCoin() {
-    const item = freeItem();
-    if (item === null) return;
-    item.active = true;
-    item.kind = KIND_COIN;
-    item.width = COIN.size;
-    item.height = COIN.size;
-    item.x = random() * (FIELD.width - item.width);
-    item.y = -item.height;
-    item.speed = COIN.speed + COIN.speedPerLevel * (state.level - 1);
-  }
-
-  function blockInterval() {
-    return Math.max(BLOCK.minInterval, BLOCK.interval * BLOCK.intervalScale ** (state.level - 1));
-  }
-
-  /**
-   * One fixed step. `direction` is -1, 0 or 1 (left, still, right). With `harmless` set (the title
-   * screen's backdrop) things fall but nothing touches the player and nothing scores.
-   */
-  function step(dt, direction, harmless) {
-    let events = 0;
-    state.elapsed += dt;
-    state.level = Math.min(LEVEL.max, 1 + Math.floor(state.elapsed / LEVEL.seconds));
-
-    player.x = Math.min(FIELD.width - player.width, Math.max(0, player.x + direction * PLAYER.speed * dt));
-    if (player.invulnerable > 0) player.invulnerable = Math.max(0, player.invulnerable - dt);
-
-    state.blockTimer -= dt;
-    if (state.blockTimer <= 0) {
-      spawnBlock();
-      state.blockTimer += blockInterval();
+/** Merge [geometry, colour, geometry, colour, ...] into one non-indexed geometry with vertex colours. */
+function mergeColoured(THREE, parts) {
+  const positions = [];
+  const normals = [];
+  const colors = [];
+  const colour = new THREE.Color();
+  for (let index = 0; index < parts.length; index += 2) {
+    const geometry = parts[index];
+    const plain = geometry.index ? geometry.toNonIndexed() : geometry;
+    const position = plain.getAttribute('position');
+    const normal = plain.getAttribute('normal');
+    colour.set(parts[index + 1]);
+    for (let vertex = 0; vertex < position.count; vertex += 1) {
+      positions.push(position.getX(vertex), position.getY(vertex), position.getZ(vertex));
+      normals.push(normal.getX(vertex), normal.getY(vertex), normal.getZ(vertex));
+      colors.push(colour.r, colour.g, colour.b);
     }
-    state.coinTimer -= dt;
-    if (state.coinTimer <= 0) {
-      spawnCoin();
-      state.coinTimer += COIN.interval + random() * COIN.intervalJitter;
-    }
+    if (plain !== geometry) plain.dispose();
+    geometry.dispose();
+  }
+  const merged = new THREE.BufferGeometry();
+  merged.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  merged.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  merged.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  merged.computeBoundingSphere();
+  return merged;
+}
 
+/** A parked car's three pieces, shared by every car and drawn instanced: body, cabin, wheel. */
+function makeCarParts(THREE) {
+  const wheel = new THREE.CylinderGeometry(0.36, 0.36, 0.28, 8);
+  wheel.rotateZ(Math.PI / 2);
+  const body = new THREE.BoxGeometry(1.85, 0.72, 4.1);
+  body.translate(0, 0.62, 0);
+  const cabin = new THREE.BoxGeometry(1.62, 0.6, 2.0);
+  cabin.translate(0, 1.26, -0.15);
+  return { body, cabin, wheel };
+}
+
+export function buildWorld(scene, rng) {
+  const THREE = globalThis.THREE;
+  if (!THREE) throw new Error('buildWorld needs the global THREE from three.min.js');
+  const random = typeof rng === 'function' ? rng : fallbackRandom(1);
+  const rand = (min, max) => min + random() * (max - min);
+  const pick = (list) => list[Math.floor(random() * list.length) % list.length];
+  const chance = (p) => random() < p;
+
+  const colliders = [];
+  const roads = [];
+  const sidewalks = [];
+  const buildings = [];
+  const dummy = new THREE.Object3D();
+  const tint = new THREE.Color();
+
+  /** Add one InstancedMesh for a list of { x, y, z, sx, sy, sz, rx, ry, rz, color } placements. */
+  function instanced(geometry, material, items, shadows) {
+    if (items.length === 0) return null;
+    const mesh = new THREE.InstancedMesh(geometry, material, items.length);
     for (let index = 0; index < items.length; index += 1) {
       const item = items[index];
-      if (!item.active) continue;
-      item.y += item.speed * dt;
-      if (item.y > FIELD.groundY) {
-        item.active = false;
-        if (item.kind === KIND_BLOCK && !harmless) state.score += BLOCK.dodgePoints;
-        continue;
+      dummy.position.set(item.x, item.y, item.z);
+      dummy.rotation.set(item.rx || 0, item.ry || 0, item.rz || 0);
+      dummy.scale.set(item.sx === undefined ? 1 : item.sx, item.sy === undefined ? 1 : item.sy, item.sz === undefined ? 1 : item.sz);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(index, dummy.matrix);
+      if (item.color !== undefined) mesh.setColorAt(index, tint.set(item.color));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.castShadow = !!shadows;
+    mesh.receiveShadow = !!shadows;
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+    return mesh;
+  }
+
+  function boxCollider(x, z, w, d, height) {
+    colliders.push({
+      min: { x: x - w / 2, y: 0, z: z - d / 2 },
+      max: { x: x + w / 2, y: height, z: z + d / 2 },
+    });
+  }
+
+  // Sky, fog and the light rig: a cool moon for the shadows, warm shop glow low down.
+  scene.background = new THREE.Color(0x0a0f19);
+  scene.fog = new THREE.Fog(0x101828, 190, 780);
+  scene.add(new THREE.HemisphereLight(0x46618c, 0x171a20, 0.75));
+  scene.add(new THREE.AmbientLight(0x76839a, 0.3));
+  const moon = new THREE.DirectionalLight(0xb9cdeb, 1.5);
+  moon.position.set(160, 220, 110);
+  moon.castShadow = true;
+  moon.shadow.mapSize.set(2048, 2048);
+  moon.shadow.camera.left = -300;
+  moon.shadow.camera.right = 300;
+  moon.shadow.camera.top = 300;
+  moon.shadow.camera.bottom = -300;
+  moon.shadow.camera.near = 1;
+  moon.shadow.camera.far = 760;
+  moon.shadow.bias = -0.0007;
+  scene.add(moon);
+  for (const [x, z] of [[0, -44], [0, 44], [88, 0], [-88, 0]]) {
+    const lamp = new THREE.PointLight(0xffb266, 55, 40, 2);
+    lamp.position.set(x, 6, z);
+    scene.add(lamp);
+  }
+
+  const starPositions = [];
+  for (let index = 0; index < 520; index += 1) starPositions.push(rand(-1000, 1000), rand(170, 560), rand(-1000, 1000));
+  const starGeometry = new THREE.BufferGeometry();
+  starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+  scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xa9c2e2, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0.8, fog: false })));
+
+  const asphalt = new THREE.MeshStandardMaterial({ color: 0x24262d, roughness: 0.95, metalness: 0.03 });
+  const concrete = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, metalness: 0.03 });
+  const kerbMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9da6, roughness: 0.82 });
+  const paint = new THREE.MeshStandardMaterial({ color: 0xd7d6c8, roughness: 0.66 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.55 });
+  const glow = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x0a1724, roughness: 0.15, metalness: 0.9 });
+
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(CITY + 460, CITY + 140), asphalt);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set(0, 0, -6);
+  ground.receiveShadow = true;
+  scene.add(ground);
+  const bedrock = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x0d1119, roughness: 1 }));
+  bedrock.rotation.x = -Math.PI / 2;
+  bedrock.position.set(0, -0.9, 0);
+  scene.add(bedrock);
+
+  const slabItems = [];
+  const kerbItems = [];
+  const dashItems = [];
+  const crossingItems = [];
+  const buildingItems = [];
+  const windowItems = [];
+  const rooftopItems = [];
+  const tankItems = [];
+  const poleItems = [];
+  const armItems = [];
+  const lampItems = [];
+  const poolItems = [];
+  const trunkItems = [];
+  const leafItems = [];
+  const hydrantItems = [];
+  const hydrantTopItems = [];
+  const benchItems = [];
+  const benchBackItems = [];
+  const carBodies = [];
+  const carCabins = [];
+  const carWheels = [];
+  const farTowers = [];
+  const farWindows = [];
+  const beaconSpots = [];
+  const palms = [];
+
+  const roadCenters = [];
+  for (let index = 0; index < GRID - 1; index += 1) roadCenters.push((index - (GRID - 2) / 2) * PITCH);
+
+  for (const center of roadCenters) {
+    roads.push({ x: center, z: 0, width: ROAD, depth: CITY, axis: 'z' });
+    roads.push({ x: 0, z: center, width: CITY, depth: ROAD, axis: 'x' });
+  }
+
+  /** The park: grass, a pond, two paths, trees and benches. Placed before the block loop so it fills one block. */
+  function buildPark(bx, bz) {
+    const grass = new THREE.Mesh(new THREE.BoxGeometry(BLOCK_SIZE - 6, 0.2, BLOCK_SIZE - 6), new THREE.MeshStandardMaterial({ color: 0x35573b, roughness: 0.96 }));
+    grass.position.set(bx, 0.1, bz);
+    grass.receiveShadow = true;
+    scene.add(grass);
+    const pond = new THREE.Mesh(new THREE.CircleGeometry(8, 26), waterMaterial);
+    pond.rotation.x = -Math.PI / 2;
+    pond.position.set(bx + 5, 0.215, bz - 4);
+    scene.add(pond);
+    const pathMaterial = new THREE.MeshStandardMaterial({ color: 0x8d897d, roughness: 0.95 });
+    const pathA = new THREE.Mesh(new THREE.BoxGeometry(BLOCK_SIZE - 8, 0.22, 6), pathMaterial);
+    pathA.position.set(bx, 0.11, bz + 12);
+    pathA.receiveShadow = true;
+    scene.add(pathA);
+    const pathB = new THREE.Mesh(new THREE.BoxGeometry(6, 0.22, BLOCK_SIZE - 10), pathMaterial);
+    pathB.position.set(bx - 12, 0.11, bz);
+    pathB.receiveShadow = true;
+    scene.add(pathB);
+    for (let index = 0; index < 14; index += 1) {
+      const tx = bx + rand(-27, 27);
+      const tz = bz + rand(-27, 27);
+      if (Math.hypot(tx - (bx + 5), tz - (bz - 4)) < 11.5) continue;
+      trunkItems.push({ x: tx, y: 0.2, z: tz, sx: rand(0.9, 1.4), sy: rand(1.0, 1.6), sz: rand(0.9, 1.4), color: 0x5c452f });
+      leafItems.push({ x: tx, y: 0.2 + rand(3.2, 4.4), z: tz, sx: rand(2.1, 3.1), sy: rand(2.0, 2.9), sz: rand(2.1, 3.1), color: pick(LEAVES) });
+    }
+    for (let index = 0; index < 6; index += 1) {
+      const angle = (index / 6) * Math.PI * 2 + 0.4;
+      benchItems.push({ x: bx + 5 + Math.cos(angle) * 13, y: 0.62, z: bz - 4 + Math.sin(angle) * 13, ry: -angle + Math.PI / 2 });
+      benchBackItems.push({ x: bx + 5 + Math.cos(angle) * 12.72, y: 0.94, z: bz - 4 + Math.sin(angle) * 12.72, ry: -angle + Math.PI / 2 });
+    }
+  }
+
+  buildPark(PARK.x, PARK.z);
+
+  for (let gx = 0; gx < GRID; gx += 1) {
+    for (let gz = 0; gz < GRID; gz += 1) {
+      const bx = (gx - (GRID - 1) / 2) * PITCH;
+      const bz = (gz - (GRID - 1) / 2) * PITCH;
+      const isPark = Math.abs(bx - PARK.x) < 1 && Math.abs(bz - PARK.z) < 1;
+      const edge = BLOCK_SIZE / 2;
+
+      slabItems.push({ x: bx, y: SIDEWALK_H / 2, z: bz, sx: BLOCK_SIZE, sy: SIDEWALK_H, sz: BLOCK_SIZE, color: 0x6f7278 });
+      sidewalks.push({ min: { x: bx - edge, y: 0, z: bz - edge }, max: { x: bx + edge, y: SIDEWALK_H, z: bz + edge }, height: SIDEWALK_H });
+
+      kerbItems.push({ x: bx, y: (SIDEWALK_H + 0.06) / 2, z: bz - edge, sx: BLOCK_SIZE + 0.4, sy: SIDEWALK_H + 0.06, sz: 0.4 });
+      kerbItems.push({ x: bx, y: (SIDEWALK_H + 0.06) / 2, z: bz + edge, sx: BLOCK_SIZE + 0.4, sy: SIDEWALK_H + 0.06, sz: 0.4 });
+      kerbItems.push({ x: bx - edge, y: (SIDEWALK_H + 0.06) / 2, z: bz, sx: 0.4, sy: SIDEWALK_H + 0.06, sz: BLOCK_SIZE + 0.4 });
+      kerbItems.push({ x: bx + edge, y: (SIDEWALK_H + 0.06) / 2, z: bz, sx: 0.4, sy: SIDEWALK_H + 0.06, sz: BLOCK_SIZE + 0.4 });
+
+      // Street lights on two or three corners, the lamp arm reaching out over the roadway.
+      const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+      for (let index = corners.length - 1; index > 0; index -= 1) {
+        const other = Math.floor(random() * (index + 1));
+        const swap = corners[index];
+        corners[index] = corners[other];
+        corners[other] = swap;
       }
-      if (harmless || !overlaps(item, player)) continue;
-      if (item.kind === KIND_COIN) {
-        item.active = false;
-        state.score += COIN.points;
-        events |= EVENT_COIN;
-      } else if (player.invulnerable === 0) {
-        item.active = false;
-        state.lives -= 1;
-        player.invulnerable = PLAYER.invulnerable;
-        events |= EVENT_HIT;
-        if (state.lives === 0) {
-          events |= EVENT_OVER;
-          break;
+      const lampCount = chance(0.45) ? 3 : 2;
+      for (let index = 0; index < lampCount; index += 1) {
+        const sx = corners[index][0];
+        const sz = corners[index][1];
+        const length = Math.SQRT2;
+        const dx = sx / length;
+        const dz = sz / length;
+        const px = bx + sx * (edge - 1.4);
+        const pz = bz + sz * (edge - 1.4);
+        poleItems.push({ x: px, y: SIDEWALK_H, z: pz, color: 0x3d4249 });
+        armItems.push({ x: px, y: SIDEWALK_H + 4.5, z: pz, ry: Math.atan2(-dz, dx), color: 0x3d4249 });
+        lampItems.push({ x: px + dx * 1.5, y: SIDEWALK_H + 4.5, z: pz + dz * 1.5, color: 0xffd39a });
+        poolItems.push({ x: px + dx * 2.9, y: 0.035, z: pz + dz * 2.9, rx: -Math.PI / 2 });
+      }
+
+      if (chance(0.55)) {
+        const sx = chance(0.5) ? 1 : -1;
+        const hx = bx + sx * (edge - 2.8);
+        const hz = bz + rand(-24, 24);
+        hydrantItems.push({ x: hx, y: SIDEWALK_H + 0.26, z: hz, color: 0xb03a2e });
+        hydrantTopItems.push({ x: hx, y: SIDEWALK_H + 0.55, z: hz, color: 0xc9463a });
+      }
+
+      for (const side of chance(0.5) ? [0, 1] : [2, 3]) {
+        for (let index = 0; index < 2; index += 1) {
+          const along = rand(-24, 24);
+          const inset = edge - 2.6;
+          const tx = side < 2 ? bx + (side === 0 ? -inset : inset) : bx + along;
+          const tz = side < 2 ? bz + along : bz + (side === 2 ? -inset : inset);
+          trunkItems.push({ x: tx, y: SIDEWALK_H, z: tz, sx: rand(0.82, 1.12), sy: rand(0.9, 1.2), sz: rand(0.82, 1.12), color: 0x54402c });
+          leafItems.push({ x: tx, y: SIDEWALK_H + rand(2.6, 3.1), z: tz, sx: rand(1.5, 2.1), sy: rand(1.4, 1.9), sz: rand(1.5, 2.1), color: pick(LEAVES) });
+        }
+      }
+
+      // A parked car sometimes sits in the gutter lane along one face of the block.
+      if (chance(0.5)) {
+        const side = Math.floor(random() * 4);
+        const along = rand(-20, 20);
+        const gutter = edge + 2.6;
+        let cx = bx;
+        let cz = bz;
+        let ry = 0;
+        if (side === 0) {
+          cx = bx - gutter;
+          cz = bz + along;
+          ry = 0;
+        } else if (side === 1) {
+          cx = bx + gutter;
+          cz = bz + along;
+          ry = 0;
+        } else if (side === 2) {
+          cx = bx + along;
+          cz = bz - gutter;
+          ry = Math.PI / 2;
+        } else {
+          cx = bx + along;
+          cz = bz + gutter;
+          ry = Math.PI / 2;
+        }
+        const color = pick(CAR_COLORS);
+        carBodies.push({ x: cx, y: 0, z: cz, ry, color });
+        carCabins.push({ x: cx, y: 0, z: cz, ry });
+        for (const [ox, oz] of [[-0.94, 1.32], [0.94, 1.32], [-0.94, -1.32], [0.94, -1.32]]) {
+          const cos = Math.cos(ry);
+          const sin = Math.sin(ry);
+          carWheels.push({ x: cx + ox * cos + oz * sin, y: 0, z: cz - ox * sin + oz * cos, ry, rx: 0, color: 0x1b1d21 });
+        }
+        if (side < 2) boxCollider(cx, cz, 2.1, 4.4, 1.5);
+        else boxCollider(cx, cz, 4.4, 2.1, 1.5);
+      }
+
+      if (isPark) continue;
+
+      // Lots: one tower, two halves, or a small cluster of three, always inside the kerb.
+      const roll = random();
+      const lots = [];
+      if (roll < 0.28) {
+        const w = rand(24, 44);
+        const d = rand(24, 44);
+        lots.push({ x: bx + rand(-2, 2), z: bz + rand(-2, 2), w, d });
+      } else if (roll < 0.84) {
+        const gap = rand(3, 6);
+        if (chance(0.5)) {
+          const w = (58 - gap) / 2;
+          lots.push({ x: bx - (w + gap) / 2, z: bz + rand(-3, 3), w, d: rand(34, 56) });
+          lots.push({ x: bx + (w + gap) / 2, z: bz + rand(-3, 3), w, d: rand(34, 56) });
+        } else {
+          const d = (58 - gap) / 2;
+          lots.push({ x: bx + rand(-3, 3), z: bz - (d + gap) / 2, w: rand(34, 56), d });
+          lots.push({ x: bx + rand(-3, 3), z: bz + (d + gap) / 2, w: rand(34, 56), d });
+        }
+      } else {
+        const d = rand(42, 56);
+        lots.push({ x: bx - 16, z: bz, w: 26, d });
+        lots.push({ x: bx + 16, z: bz - 15.5, w: 26, d: 27 });
+        lots.push({ x: bx + 16, z: bz + 15.5, w: 26, d: 27 });
+      }
+
+      const distance = Math.hypot(bx, bz);
+      const downtown = Math.max(0, 1 - distance / 300);
+      for (const lot of lots) {
+        let height = 6 + random() * 15 + downtown * random() * 42;
+        if (chance(0.07)) height = 50 + random() * 10;
+        height = Math.min(60, Math.max(6, height));
+        const glass = chance(0.26 + downtown * 0.24);
+        const color = glass ? pick(GLASS) : pick(CONCRETE);
+        buildings.push({ x: lot.x, z: lot.z, w: lot.w, d: lot.d, height, color });
+        buildingItems.push({ x: lot.x, y: SIDEWALK_H + height / 2, z: lot.z, sx: lot.w, sy: height, sz: lot.d, color });
+        boxCollider(lot.x, lot.z, lot.w, lot.d, SIDEWALK_H + height);
+
+        // Emissive window strips on all four faces, a lit or unlit colour per window.
+        const rowStep = glass ? 2.9 : 3.3;
+        const colStep = glass ? 2.7 : 3.3;
+        const innerW = lot.w - 2.6;
+        const innerD = lot.d - 2.6;
+        const rows = Math.min(16, Math.max(1, Math.floor((height - 3.4) / rowStep)));
+        const columnsX = Math.max(1, Math.floor(innerW / colStep));
+        const columnsZ = Math.max(1, Math.floor(innerD / colStep));
+        for (let row = 0; row < rows; row += 1) {
+          const y = SIDEWALK_H + 2.9 + row * rowStep;
+          for (let col = 0; col < columnsX; col += 1) {
+            const u = -innerW / 2 + colStep / 2 + col * colStep;
+            const lit = chance(glass ? 0.82 : 0.66);
+            const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
+            windowItems.push({ x: lot.x + u, y, z: lot.z + lot.d / 2 + 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
+            windowItems.push({ x: lot.x + u, y, z: lot.z - lot.d / 2 - 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
+          }
+          for (let col = 0; col < columnsZ; col += 1) {
+            const u = -innerD / 2 + colStep / 2 + col * colStep;
+            const lit = chance(glass ? 0.82 : 0.66);
+            const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
+            windowItems.push({ x: lot.x + lot.w / 2 + 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
+            windowItems.push({ x: lot.x - lot.w / 2 - 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
+          }
+        }
+
+        if (chance(0.45)) {
+          rooftopItems.push({
+            x: lot.x + rand(-lot.w * 0.16, lot.w * 0.16),
+            y: SIDEWALK_H + height + 0.85,
+            z: lot.z + rand(-lot.d * 0.16, lot.d * 0.16),
+            sx: lot.w * rand(0.24, 0.42),
+            sy: 1.7,
+            sz: lot.d * rand(0.24, 0.42),
+            color: 0x4f5155,
+          });
+        }
+        if (height > 16 && chance(0.35)) {
+          tankItems.push({ x: lot.x + rand(-lot.w * 0.2, lot.w * 0.2), y: SIDEWALK_H + height + 1.2, z: lot.z + rand(-lot.d * 0.2, lot.d * 0.2), color: 0x6b5c46 });
         }
       }
     }
-    return events;
   }
 
-  reset();
-  return { state, reset, step };
+  // The harbour strip: a promenade in front of the last row, a quay wall, then open water, with a
+  // railing and a line of palms. The city turns its back to it, so the far side stays calm.
+  const promenade = new THREE.Mesh(new THREE.BoxGeometry(CITY + 260, 0.16, 54), new THREE.MeshStandardMaterial({ color: 0x777a80, roughness: 0.9 }));
+  promenade.position.set(0, 0.08, HALF + 27);
+  promenade.receiveShadow = true;
+  scene.add(promenade);
+  sidewalks.push({ min: { x: -(CITY + 260) / 2, y: 0, z: HALF }, max: { x: (CITY + 260) / 2, y: 0.16, z: HALF + 54 }, height: 0.16 });
+
+  const quay = new THREE.Mesh(new THREE.BoxGeometry(CITY + 280, 1.4, 2.6), kerbMaterial);
+  quay.position.set(0, 0.1, WATER_Z - 1.3);
+  quay.receiveShadow = true;
+  scene.add(quay);
+
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(2400, 1400), waterMaterial);
+  water.rotation.x = -Math.PI / 2;
+  water.position.set(0, -0.5, WATER_Z + 640);
+  scene.add(water);
+
+  const railTop = new THREE.Mesh(new THREE.BoxGeometry(CITY + 240, 0.1, 0.1), metal);
+  railTop.position.set(0, 1.15, WATER_Z - 2.2);
+  scene.add(railTop);
+  const railPosts = [];
+  for (let x = -(CITY + 240) / 2; x <= (CITY + 240) / 2; x += 4) railPosts.push({ x, y: 0.72, z: WATER_Z - 2.2, sx: 0.1, sy: 1.05, sz: 0.1 });
+  instanced(new THREE.BoxGeometry(1, 1, 1), metal, railPosts, false);
+
+  const palmGeometry = makePalmGeometry(THREE);
+  const palmMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0.02, side: THREE.DoubleSide });
+  for (let index = 0; index < 24; index += 1) {
+    const holder = new THREE.Group();
+    const palmMesh = new THREE.Mesh(palmGeometry, palmMaterial);
+    palmMesh.castShadow = true;
+    holder.add(palmMesh);
+    holder.position.set(-(CITY + 150) / 2 + index * ((CITY + 150) / 23) + rand(-2.5, 2.5), 0.16, HALF + 15 + rand(-1.5, 1.5));
+    holder.rotation.y = rand(0, Math.PI * 2);
+    holder.scale.setScalar(rand(0.85, 1.2));
+    scene.add(holder);
+    palms.push({ holder, phase: rand(0, Math.PI * 2), strength: rand(0.7, 1.3) });
+  }
+  for (let index = 0; index < 4; index += 1) {
+    const holder = new THREE.Group();
+    const palmMesh = new THREE.Mesh(palmGeometry, palmMaterial);
+    palmMesh.castShadow = true;
+    holder.add(palmMesh);
+    holder.position.set(PARK.x + rand(-20, 20), 0.22, PARK.z + rand(-20, 20));
+    holder.rotation.y = rand(0, Math.PI * 2);
+    holder.scale.setScalar(rand(0.8, 1.0));
+    scene.add(holder);
+    palms.push({ holder, phase: rand(0, Math.PI * 2), strength: rand(0.5, 0.9) });
+  }
+
+  // Lane dashes down the middle of every road, broken at the junctions, plus zebra crossings there.
+  for (const center of roadCenters) {
+    for (let z = -HALF + 8; z <= HALF - 8; z += 9) {
+      let junction = false;
+      for (const other of roadCenters) if (Math.abs(z - other) < 12) junction = true;
+      if (!junction) dashItems.push({ x: center, y: 0.02, z, sx: 0.32, sy: 0.04, sz: 3.4 });
+    }
+    for (let x = -HALF + 8; x <= HALF - 8; x += 9) {
+      let junction = false;
+      for (const other of roadCenters) if (Math.abs(x - other) < 12) junction = true;
+      if (!junction) dashItems.push({ x, y: 0.02, z: center, sx: 3.4, sy: 0.04, sz: 0.32 });
+    }
+  }
+  for (const cx of roadCenters) {
+    for (const cz of roadCenters) {
+      for (let bar = -2; bar <= 2; bar += 1) {
+        crossingItems.push({ x: cx + bar * 3, y: 0.03, z: cz + 10.4, sx: 1.6, sy: 0.05, sz: 3.4 });
+        crossingItems.push({ x: cx + bar * 3, y: 0.03, z: cz - 10.4, sx: 1.6, sy: 0.05, sz: 3.4 });
+        crossingItems.push({ x: cx + 10.4, y: 0.03, z: cz + bar * 3, sx: 3.4, sy: 0.05, sz: 1.6 });
+        crossingItems.push({ x: cx - 10.4, y: 0.03, z: cz + bar * 3, sx: 3.4, sy: 0.05, sz: 1.6 });
+      }
+    }
+  }
+
+  // The skyline behind the water: tall, dark towers whose lit windows read as the far city.
+  for (let index = 0; index < 38; index += 1) {
+    const side = index % 3;
+    let tx;
+    let tz;
+    if (side === 2) {
+      tx = rand(-900, 900);
+      tz = WATER_Z + rand(120, 620);
+    } else {
+      const angle = rand(0, Math.PI * 2);
+      const radius = rand(420, 780);
+      tx = Math.cos(angle) * radius;
+      tz = Math.sin(angle) * radius;
+      if (Math.abs(tx) < HALF + 40 && tz < HALF + 40) continue;
+    }
+    const height = rand(52, 155);
+    const w = rand(24, 48);
+    const d = rand(24, 48);
+    farTowers.push({ x: tx, y: height / 2 - 0.5, z: tz, sx: w, sy: height, sz: d, color: pick([0x212831, 0x2a3039, 0x1c232b, 0x323942]) });
+    if (height > 118 && beaconSpots.length < 8) beaconSpots.push({ x: tx, y: height + 1.4, z: tz });
+
+    const faceZ = tz > 0 ? -1 : 1;
+    const faceX = tx > 0 ? -1 : 1;
+    const rows = Math.floor(height / 8.5);
+    const cols = Math.floor(w / 7);
+    for (let row = 0; row < rows; row += 1) {
+      if (!chance(0.6)) continue;
+      const y = 6 + row * 8.5;
+      for (let col = 0; col < cols; col += 1) {
+        if (!chance(0.55)) continue;
+        const offset = -w / 2 + 4 + col * 7;
+        if (Math.abs(tz) > Math.abs(tx)) {
+          farWindows.push({ x: tx + offset, y, z: tz + faceZ * (d / 2 + 0.12), sx: 2.3, sy: 1.5, sz: 0.12, color: pick(WINDOW_LIGHT) });
+        } else {
+          farWindows.push({ x: tx + faceX * (w / 2 + 0.12), y, z: tz + offset, sx: 0.12, sy: 1.5, sz: 2.3, color: pick(WINDOW_LIGHT) });
+        }
+      }
+    }
+  }
+  if (beaconSpots.length === 0) beaconSpots.push({ x: 0, y: 72, z: WATER_Z + 300 });
+  const beacons = [];
+  const beaconGeometry = new THREE.SphereGeometry(0.9, 6, 5);
+  for (const spot of beaconSpots) {
+    const beacon = new THREE.Mesh(beaconGeometry, new THREE.MeshBasicMaterial({ color: 0xff5a4a, transparent: true }));
+    beacon.position.set(spot.x, spot.y, spot.z);
+    scene.add(beacon);
+    beacons.push(beacon);
+  }
+
+  // Everything that repeated is one draw call from here on. The unit box is stretched by each
+  // instance's scale; poles and arms are pre-translated so their base sits at the placement point.
+  const unitBox = new THREE.BoxGeometry(1, 1, 1);
+  const slabs = instanced(unitBox, concrete, slabItems, false);
+  if (slabs) slabs.receiveShadow = true;
+  instanced(unitBox, kerbMaterial, kerbItems, false);
+  instanced(unitBox, concrete, buildingItems, true);
+  instanced(unitBox, glow, windowItems, false);
+  instanced(unitBox, concrete, rooftopItems, true);
+  instanced(unitBox, glow, farWindows, false);
+  instanced(unitBox, concrete, farTowers, true);
+  instanced(new THREE.CylinderGeometry(1.15, 1.28, 2.4, 8), metal, tankItems, true);
+  instanced(new THREE.CylinderGeometry(0.11, 0.17, 4.6, 6).translate(0, 2.3, 0), metal, poleItems, true);
+  instanced(new THREE.BoxGeometry(1.7, 0.1, 0.1).translate(0.85, 0, 0), metal, armItems, false);
+  instanced(new THREE.SphereGeometry(0.2, 8, 6), glow, lampItems, false);
+  instanced(new THREE.CircleGeometry(3.1, 16), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
+  instanced(new THREE.CylinderGeometry(0.16, 0.26, 2.9, 6).translate(0, 1.45, 0), concrete, trunkItems, true);
+  instanced(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true }), leafItems, true);
+  instanced(unitBox, paint, dashItems, false);
+  instanced(unitBox, paint, crossingItems, false);
+  instanced(new THREE.CylinderGeometry(0.17, 0.21, 0.58, 8), concrete, hydrantItems, true);
+  instanced(new THREE.SphereGeometry(0.19, 8, 6), concrete, hydrantTopItems, false);
+  instanced(new THREE.BoxGeometry(1.9, 0.14, 0.6).translate(0, 0.62, 0), concrete, benchItems, true);
+  instanced(new THREE.BoxGeometry(1.9, 0.5, 0.12).translate(0, 0.92, -0.26), concrete, benchBackItems, true);
+
+  const carParts = makeCarParts(THREE);
+  instanced(carParts.body, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0.35 }), carBodies, true);
+  instanced(carParts.cabin, new THREE.MeshStandardMaterial({ color: 0x1d2733, roughness: 0.15, metalness: 0.7 }), carCabins, true);
+  instanced(carParts.wheel, new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.9 }), carWheels, false);
+
+  // Two lane light pools alternating on the central avenue, the only lights that blink.
+  const blinkingPools = [];
+  for (let index = 0; index < 8; index += 1) {
+    const light = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ color: 0xffc06a, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending }));
+    light.rotation.x = -Math.PI / 2;
+    light.position.set(0, 0.04, -HALF + 40 + index * 40);
+    scene.add(light);
+    blinkingPools.push(light);
+  }
+
+  let time = 0;
+
+  function update(dt) {
+    time += dt;
+    for (let index = 0; index < palms.length; index += 1) {
+      const palm = palms[index];
+      palm.holder.rotation.z = Math.sin(time * 0.7 + palm.phase) * 0.022 * palm.strength;
+      palm.holder.rotation.x = Math.cos(time * 0.55 + palm.phase) * 0.014 * palm.strength;
+    }
+    for (let index = 0; index < beacons.length; index += 1) {
+      beacons[index].material.opacity = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(time * 2.4 + index * 1.7));
+    }
+    for (let index = 0; index < blinkingPools.length; index += 1) {
+      blinkingPools[index].material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(time * 1.4 + index * 0.8));
+    }
+  }
+
+  update(0);
+
+  return { colliders, roads, sidewalks, buildings, palms, update };
 }
+

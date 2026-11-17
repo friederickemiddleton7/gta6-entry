@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>smoke</title>
+<style>html,body{margin:0;background:#123}#c{display:block}</style></head>
+<body>
+<canvas id="c" width="640" height="360"></canvas>
+<script src="./vendor/three.min.js"></script>
+<script>
+const c = document.getElementById('c');
+let gl = null;
+try { gl = c.getContext('webgl2') || c.getContext('webgl'); } catch (e) {}
+const info = gl ? (gl.getParameter(gl.VERSION) + ' | ' + gl.getParameter(gl.RENDERER)) : 'NO WEBGL';
+const r = new THREE.WebGLRenderer({ canvas: c, antialias: false });
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x2a6fa8);
+const cam = new THREE.PerspectiveCamera(50, 640/360, 0.1, 100);
+cam.position.set(2, 2, 3); cam.lookAt(0, 0, 0);
+const mesh = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({color:0xff8844}));
+scene.add(mesh);
+scene.add(new THREE.DirectionalLight(0xffffff, 2));
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+r.render(scene, cam);
+document.title = 'WEBGL-OK ' + info;
+document.body.insertAdjacentHTML('beforeend', '<p style="color:#fff;font:16px monospace">' + document.title + '</p>');
+</script>
+</body></html>
