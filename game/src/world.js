@@ -413,12 +413,10 @@ export function buildWorld(scene, rng) {
   sun.target.position.set(0, 0, 40);
   scene.add(sun);
   scene.add(sun.target);
-  // Two warm street lights near the staged corner, plus two further down the avenue.
-  for (const [x, z, heat] of [[0, 64, 60], [0, 96, 55], [0, -40, 45], [0, 24, 40]]) {
-    const lamp = new THREE.PointLight(0xffb266, heat, 34, 2);
-    lamp.position.set(x, 5.4, z);
-    scene.add(lamp);
-  }
+  // Two warm street lights on the actual nearest lamp heads to the staged corner. Every other lamp
+  // keeps only its emissive bulb: no fake light-pool planes anywhere.
+  const lampHeads = [];
+  const lampNear = { x: 2.4, z: 70 };
 
   const starPositions = [];
   for (let index = 0; index < 380; index += 1) starPositions.push(rand(-1000, 1000), rand(230, 560), rand(-1000, 1000));
@@ -463,7 +461,6 @@ export function buildWorld(scene, rng) {
   const poleItems = [];
   const armItems = [];
   const lampItems = [];
-  const poolItems = [];
   const trunkItems = [];
   const leafItems = [];
   const hydrantItems = [];
@@ -471,7 +468,6 @@ export function buildWorld(scene, rng) {
   const binItems = [];
   const benchItems = [];
   const benchBackItems = [];
-  const wetItems = [];
   const carBodies = [];
   const carCabins = [];
   const carWheels = [];
@@ -558,18 +554,6 @@ export function buildWorld(scene, rng) {
         poleItems.push({ x: px, y: SIDEWALK_H, z: pz, color: 0x3d4249 });
         armItems.push({ x: px, y: SIDEWALK_H + 4.5, z: pz, ry: Math.atan2(-dz, dx), color: 0x3d4249 });
         lampItems.push({ x: px + dx * 1.5, y: SIDEWALK_H + 4.5, z: pz + dz * 1.5, color: 0xffd39a });
-        poolItems.push({ x: px + dx * 2.9, y: 0.035, z: pz + dz * 2.9, rx: -Math.PI / 2 });
-        // A wet specular smear running down the roadway from under each lamp head.
-        wetItems.push({
-          x: px + dx * 5.4,
-          y: 0.045,
-          z: pz + dz * 5.4,
-          rx: -Math.PI / 2,
-          ry: 0,
-          rz: Math.atan2(dx, dz),
-          sx: 1,
-          sy: 1,
-        });
       }
 
       if (chance(0.55)) {
@@ -899,8 +883,30 @@ export function buildWorld(scene, rng) {
   instanced(new THREE.CylinderGeometry(0.11, 0.17, 4.6, 6).translate(0, 2.3, 0), metal, poleItems, true);
   instanced(new THREE.BoxGeometry(1.7, 0.1, 0.1).translate(0.85, 0, 0), metal, armItems, false);
   instanced(new THREE.SphereGeometry(0.2, 8, 6), glow, lampItems, false);
-  const pools = instanced(new THREE.CircleGeometry(4.2, 20), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
-  if (pools) pools.renderOrder = 2;
+
+  // Real light from the two nearest lamp heads only: small, warm and tightly decayed so the road
+  // under them brightens without spilling flat discs across the asphalt.
+  const nearest = lampItems
+    .map((item) => ({ item, d: Math.hypot(item.x - lampNear.x, item.z - lampNear.z) }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, 2);
+  for (let index = 0; index < nearest.length; index += 1) {
+    const head = nearest[index].item;
+    const light = new THREE.PointLight(0xffd9a0, index === 0 ? 9 : 7, 12, 2);
+    light.position.set(head.x, head.y - 0.1, head.z);
+    scene.add(light);
+    lampHeads.push(light);
+    // A slightly larger emissive bulb over each lit head so the fixture itself reads as on.
+    const bulb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.34, 10, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffe9c4, fog: true }),
+    );
+    bulb.position.set(head.x, head.y - 0.06, head.z);
+    scene.add(bulb);
+  }
+
+  const pools = null;
+  void pools;
   instanced(new THREE.CylinderGeometry(0.16, 0.26, 2.9, 6).translate(0, 1.45, 0), concrete, trunkItems, true);
   instanced(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true }), leafItems, true);
   instanced(unitBox, paint, dashItems, false);
@@ -916,25 +922,6 @@ export function buildWorld(scene, rng) {
   instanced(carParts.cabin, new THREE.MeshStandardMaterial({ color: 0x1d2733, roughness: 0.15, metalness: 0.7 }), carCabins, true);
   instanced(carParts.wheel, new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.9 }), carWheels, false);
 
-  // Wet asphalt: a soft, stretched additive streak under each lamp, so the road catches the light.
-  const wetStreaks = instanced(
-    new THREE.PlaneGeometry(2.6, 12),
-    new THREE.MeshBasicMaterial({ color: 0xffb878, transparent: true, opacity: 0.13, depthWrite: false, blending: THREE.AdditiveBlending }),
-    wetItems,
-    false,
-  );
-  if (wetStreaks) wetStreaks.renderOrder = 1;
-
-  // Two lane light pools alternating on the central avenue, the only lights that blink.
-  const blinkingPools = [];
-  for (let index = 0; index < 8; index += 1) {
-    const light = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ color: 0xffc06a, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending }));
-    light.rotation.x = -Math.PI / 2;
-    light.position.set(0, 0.04, -HALF + 40 + index * 40);
-    scene.add(light);
-    blinkingPools.push(light);
-  }
-
   let time = 0;
 
   function update(dt) {
@@ -946,9 +933,6 @@ export function buildWorld(scene, rng) {
     }
     for (let index = 0; index < beacons.length; index += 1) {
       beacons[index].material.opacity = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(time * 2.4 + index * 1.7));
-    }
-    for (let index = 0; index < blinkingPools.length; index += 1) {
-      blinkingPools[index].material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(time * 1.4 + index * 0.8));
     }
   }
 

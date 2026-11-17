@@ -256,7 +256,7 @@ export function createPlayer(scene, camera, world) {
     );
   }
 
-  /** A staged pose for screenshots: 'run' leans forward with opposite arm and leg swings. */
+  /** A staged pose for screenshots: 'run' leans forward, 'aim' is a two-handed pistol stance. */
   function setPose(kind) {
     if (kind === 'run') {
       body.legs[0].rotation.x = 0.62;
@@ -266,12 +266,28 @@ export function createPlayer(scene, camera, world) {
       body.arms[0].rotation.x = -0.72;
       body.arms[1].rotation.x = -1.34;
       body.arms[1].rotation.z = -0.12;
+      body.pistol.rotation.x = 0;
       group.rotation.z = 0.03;
+    } else if (kind === 'aim') {
+      // Bladed stance, both arms up: the off hand braces the gun arm at the centre line.
+      body.legs[0].rotation.x = 0.16;
+      body.legs[1].rotation.x = -0.2;
+      body.legs[0].rotation.z = 0.06;
+      body.legs[1].rotation.z = -0.06;
+      body.arms[0].rotation.x = -1.12;
+      body.arms[0].rotation.z = 0.62;
+      body.arms[1].rotation.x = -1.12;
+      body.arms[1].rotation.z = -0.22;
+      body.pistol.rotation.x = 1.12;
+      group.rotation.z = 0;
     } else {
       body.legs[0].rotation.x = 0;
       body.legs[1].rotation.x = 0;
       body.arms[0].rotation.x = 0;
+      body.arms[0].rotation.z = 0;
       if (!player.pistolOut) body.arms[1].rotation.x = 0;
+      body.arms[1].rotation.z = player.pistolOut ? -0.12 : 0;
+      body.pistol.rotation.x = 0;
       group.rotation.z = 0;
     }
   }

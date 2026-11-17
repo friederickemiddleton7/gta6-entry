@@ -12603,3 +12603,1943 @@ Index: /root/gta6-entry/game/src/shots.js
 
 [0m
 chunk-f rc=143
+[0m
+> build · 100/deepseek-v4.1-flash-free
+[0m
+[0m→ [0mRead game/src/main.js
+[0m→ [0mRead game/src/shots.js
+I'll start by reading the required files and understanding the current state.
+[0m→ [0mRead game/src/world.js
+[0m→ [0mRead game/src/police.js
+[0m→ [0mRead game/src/render.js
+[0m→ [0mRead game/src/peds.js
+[0m→ [0mRead game/src/player.js
+Now let me look at vehicles.js and missions.js for the car and courier structures.
+[0m→ [0mRead game/src/vehicles.js
+[0m→ [0mRead game/src/missions.js
+[0m→ [0mRead game/index.html
+[0m
+[0m$ [0mgit -C /root/gta6-entry status --short && git -C /root/gta6-entry log --oneline -5 && ls /root/gta6-entry
+M _build.log
+1e9e88e gta6: dusk lighting, textured streets, street life and police chase
+adba9cb gta6: wire the world, player and systems into one loop with shot staging
+58c14fe Bring the kit's starter in (plumbing only)
+d5c62b0 LICENSE: MIT
+33463fd makefun anchor: drand round 34041899
+LICENSE
+_build.log
+_now_play.png
+_shot_a.png
+_shot_end.png
+_shot_play.png
+_shot_start.png
+_smoke.png
+game
+main.ts
+screenshots
+serve.ts
+shots.json
+vendor
+[0m
+[0m→ [0mRead _shot_play.png
+[0m
+[0m$ [0mcd /root/gta6-entry && grep -rn "AdditiveBlending\|poolItems\|wetItems\|blinkingPools" game/src | sed -n '1,120p'
+game/src/police.js:107:  const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+game/src/police.js:127:    new THREE.MeshBasicMaterial({ color: 0xff7a24, transparent: true, opacity: 0.24, depthWrite: false, blending: THREE.AdditiveBlending }),
+game/src/police.js:284:      new THREE.MeshBasicMaterial({ color: 0xdfe9ff, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }),
+game/src/world.js:466:  const poolItems = [];
+game/src/world.js:474:  const wetItems = [];
+game/src/world.js:561:        poolItems.push({ x: px + dx * 2.9, y: 0.035, z: pz + dz * 2.9, rx: -Math.PI / 2 });
+game/src/world.js:563:        wetItems.push({
+game/src/world.js:902:  const pools = instanced(new THREE.CircleGeometry(4.2, 20), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
+game/src/world.js:922:    new THREE.MeshBasicMaterial({ color: 0xffb878, transparent: true, opacity: 0.13, depthWrite: false, blending: THREE.AdditiveBlending }),
+game/src/world.js:923:    wetItems,
+game/src/world.js:929:  const blinkingPools = [];
+game/src/world.js:931:    const light = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ color: 0xffc06a, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending }));
+game/src/world.js:935:    blinkingPools.push(light);
+game/src/world.js:950:    for (let index = 0; index < blinkingPools.length; index += 1) {
+game/src/world.js:951:      blinkingPools[index].material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(time * 1.4 + index * 0.8));
+game/src/shots.js:107:    const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xffb066, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+game/src/shots.js:111:    const haloMaterial = new THREE.MeshBasicMaterial({ color: 0xffc78a, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+game/src/shots.js:187:    ]), transparent: true, opacity: 0.75, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
+game/src/shots.js:389:    new THREE.MeshBasicMaterial({ color: 0xffe3ad, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }),
+game/src/shots.js:396:    new THREE.MeshBasicMaterial({ color: 0xffd99a, transparent: true, opacity: 0.16, depthWrite: false, blending: THREE.AdditiveBlending }),
+game/src/shots.js:564:      new THREE.MeshBasicMaterial({ color: 0x3d5a86, transparent: true, opacity: 0.32, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
+game/src/combat.js:367:    blending: THREE.AdditiveBlending,
+game/src/combat.js:375:  const tracerMaterial = new THREE.LineBasicMaterial({ color: 0xffe7b0, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
+game/src/missions.js:143:  const beamMaterial = new THREE.MeshBasicMaterial({ color: OBJECTIVE_COLOR, transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -462,9 +462,8 @@
+ const tankItems = [];
+ const poleItems = [];
+ const armItems = [];
+ const lampItems = [];
+-const poolItems = [];
+ const trunkItems = [];
+ const leafItems = [];
+ const hydrantItems = [];
+ const hydrantTopItems = [];
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -469,9 +469,8 @@
+ const hydrantTopItems = [];
+ const binItems = [];
+ const benchItems = [];
+ const benchBackItems = [];
+-const wetItems = [];
+ const carBodies = [];
+ const carCabins = [];
+ const carWheels = [];
+ const farTowers = [];
+
+[0m
+I've read all the required modules. Let me start the implementation, beginning with removing the additive light pools in `world.js`.
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -555,20 +555,8 @@
+   const pz = bz + sz * (edge - 1.4);
+   poleItems.push({ x: px, y: SIDEWALK_H, z: pz, color: 0x3d4249 });
+   armItems.push({ x: px, y: SIDEWALK_H + 4.5, z: pz, ry: Math.atan2(-dz, dx), color: 0x3d4249 });
+   lampItems.push({ x: px + dx * 1.5, y: SIDEWALK_H + 4.5, z: pz + dz * 1.5, color: 0xffd39a });
+-  poolItems.push({ x: px + dx * 2.9, y: 0.035, z: pz + dz * 2.9, rx: -Math.PI / 2 });
+-  // A wet specular smear running down the roadway from under each lamp head.
+-  wetItems.push({
+-    x: px + dx * 5.4,
+-    y: 0.045,
+-    z: pz + dz * 5.4,
+-    rx: -Math.PI / 2,
+-    ry: 0,
+-    rz: Math.atan2(dx, dz),
+-    sx: 1,
+-    sy: 1,
+-  });
+ }
+ 
+ if (chance(0.55)) {
+   const sx = chance(0.5) ? 1 : -1;
+
+[0m
+[0m# [0mTodos
+[•] Remove additive light-pool/wet planes; real PointLights + emissive lamp heads
+[ ] Street dressing: cars, peds, props, kiosks, shelter, trees, neon signs, 6 storefronts
+[ ] Police chase readability: livery, light bar freeze/alternate, spotlight, 3-smoke wreck
+[ ] OTS camera, aim pose, courier with yellow diamond + outline
+[ ] Verify with swiftshader screenshots, logs, node --check; iterate
+[ ] Commit all changes
+[0m
+Now let me create the todo plan and check the baseline render in parallel with reading HUD (for exports/layout constraints).
+[0m→ [0mRead game/src/hud.js[90m [limit=80][0m
+[0m
+[0m$ [0mcd /root/gta6-entry/game && (python3 -m http.server 8731 --bind 127.0.0.1 >/tmp/gta6-http.log 2>&1 &) ; sleep 1; /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/gta6_baseline.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/gta6-chrome-baseline.log; ls -l /tmp/gta6_baseline.png; grep -c Uncaught /tmp/gta6-chrome-baseline.log || true
+-rw-r--r-- 1 root root 584959 Nov 17 23:09 /tmp/gta6_baseline.png
+0
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -412,14 +412,12 @@
+ sun.shadow.normalBias = 0.04;
+ sun.target.position.set(0, 0, 40);
+ scene.add(sun);
+ scene.add(sun.target);
+-// Two warm street lights near the staged corner, plus two further down the avenue.
+-for (const [x, z, heat] of [[0, 64, 60], [0, 96, 55], [0, -40, 45], [0, 24, 40]]) {
+-  const lamp = new THREE.PointLight(0xffb266, heat, 34, 2);
+-  lamp.position.set(x, 5.4, z);
+-  scene.add(lamp);
+-}
++// Two warm street lights on the actual nearest lamp heads to the staged corner. Every other lamp
++// keeps only its emissive bulb: no fake light-pool planes anywhere.
++const lampHeads = [];
++const lampNear = { x: 2.4, z: 70 };
+ 
+ const starPositions = [];
+ for (let index = 0; index < 380; index += 1) starPositions.push(rand(-1000, 1000), rand(230, 560), rand(-1000, 1000));
+ const starGeometry = new THREE.BufferGeometry();
+
+[0m
+Baseline renders cleanly at 584 KB. Now finishing the light-pool removal in `world.js` and adding the two real lamp PointLights.
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -882,8 +882,30 @@
+ instanced(new THREE.CylinderGeometry(1.15, 1.28, 2.4, 8), metal, tankItems, true);
+ instanced(new THREE.CylinderGeometry(0.11, 0.17, 4.6, 6).translate(0, 2.3, 0), metal, poleItems, true);
+ instanced(new THREE.BoxGeometry(1.7, 0.1, 0.1).translate(0.85, 0, 0), metal, armItems, false);
+ instanced(new THREE.SphereGeometry(0.2, 8, 6), glow, lampItems, false);
++
++// Real light from the two nearest lamp heads only: small, warm and tightly decayed so the road
++// under them brightens without spilling flat discs across the asphalt.
++const nearest = lampItems
++  .map((item) => ({ item, d: Math.hypot(item.x - lampNear.x, item.z - lampNear.z) }))
++  .sort((a, b) => a.d - b.d)
++  .slice(0, 2);
++for (let index = 0; index < nearest.length; index += 1) {
++  const head = nearest[index].item;
++  const light = new THREE.PointLight(0xffd9a0, index === 0 ? 9 : 7, 12, 2);
++  light.position.set(head.x, head.y - 0.1, head.z);
++  scene.add(light);
++  lampHeads.push(light);
++  // A slightly larger emissive bulb over each lit head so the fixture itself reads as on.
++  const bulb = new THREE.Mesh(
++    new THREE.SphereGeometry(0.34, 10, 8),
++    new THREE.MeshBasicMaterial({ color: 0xffe9c4, fog: true }),
++  );
++  bulb.position.set(head.x, head.y - 0.06, head.z);
++  scene.add(bulb);
++}
++
+ const pools = instanced(new THREE.CircleGeometry(4.2, 20), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
+ if (pools) pools.renderOrder = 2;
+ instanced(new THREE.CylinderGeometry(0.16, 0.26, 2.9, 6).translate(0, 1.45, 0), concrete, trunkItems, true);
+ instanced(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true }), leafItems, true);
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -904,10 +904,10 @@
+   bulb.position.set(head.x, head.y - 0.06, head.z);
+   scene.add(bulb);
+ }
+ 
+-const pools = instanced(new THREE.CircleGeometry(4.2, 20), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
+-if (pools) pools.renderOrder = 2;
++const pools = null;
++void pools;
+ instanced(new THREE.CylinderGeometry(0.16, 0.26, 2.9, 6).translate(0, 1.45, 0), concrete, trunkItems, true);
+ instanced(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true }), leafItems, true);
+ instanced(unitBox, paint, dashItems, false);
+ instanced(unitBox, paint, crossingItems, false);
+
+[0m
+[0m→ [0mRead game/src/world.js[90m [offset=895, limit=70][0m
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -921,27 +921,8 @@
+ instanced(carParts.body, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0.35 }), carBodies, true);
+ instanced(carParts.cabin, new THREE.MeshStandardMaterial({ color: 0x1d2733, roughness: 0.15, metalness: 0.7 }), carCabins, true);
+ instanced(carParts.wheel, new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.9 }), carWheels, false);
+ 
+-// Wet asphalt: a soft, stretched additive streak under each lamp, so the road catches the light.
+-const wetStreaks = instanced(
+-  new THREE.PlaneGeometry(2.6, 12),
+-  new THREE.MeshBasicMaterial({ color: 0xffb878, transparent: true, opacity: 0.13, depthWrite: false, blending: THREE.AdditiveBlending }),
+-  wetItems,
+-  false,
+-);
+-if (wetStreaks) wetStreaks.renderOrder = 1;
+-
+-// Two lane light pools alternating on the central avenue, the only lights that blink.
+-const blinkingPools = [];
+-for (let index = 0; index < 8; index += 1) {
+-  const light = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ color: 0xffc06a, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending }));
+-  light.rotation.x = -Math.PI / 2;
+-  light.position.set(0, 0.04, -HALF + 40 + index * 40);
+-  scene.add(light);
+-  blinkingPools.push(light);
+-}
+-
+ let time = 0;
+ 
+ function update(dt) {
+   time += dt;
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -933,11 +933,8 @@
+   }
+   for (let index = 0; index < beacons.length; index += 1) {
+     beacons[index].material.opacity = 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(time * 2.4 + index * 1.7));
+   }
+-  for (let index = 0; index < blinkingPools.length; index += 1) {
+-    blinkingPools[index].material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(time * 1.4 + index * 0.8));
+-  }
+ }
+ 
+ update(0);
+ 
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=8000 --screenshot=/tmp/p.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1&dbg=probe" 2>/tmp/probe.log; grep -o 'PROBE.*' /tmp/probe.log | head -c 3000
+PROBE{"vp":[1280,633],"player":[640,569,0.96],"peds":[null,[810,285,1],[563,273,1],null,[-3132,1579,0.83],[838,292,0.99],[562,273,1],null,null,[758,276,1],[563,277,1],null,[-43,445,0.97],[757,275,1],[577,271,1],null,[-125,510,0.97],[784,282,1],[560,275,1],null],"units":[[569,331,0.99]],"cars":[[971,381,0.98],[605,299,0.99],[741,291,0.99],[616,284,1],[713,279,1],[622,275,1],[694,272,1],[625,269,1],null,null,null,[1363,262,1],null,null,[1091,263,1],null,[16124,485,0.97],null,[-229,277,1],null],"lights":6,"calls":364,"tris":232443}", source: http://127.0.0.1:8731/src/main.js (455)
+[0m
+Now the police module: proper alternating light bar, tamer materials, emissive fire and 3 smoke sprites.
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -92,9 +92,29 @@
+   });
+   return { group, legs: [limbs[0], limbs[2]], arms: [limbs[1], limbs[3]] };
+ }
+ 
+-/** A burning wreck: a dark car, a fire sprite, smoke puffs and a scorched halo on the road. */
++/** A soft smoke puff painted into a canvas, used as the three sprites over a burning wreck. */
++function makeSmokeTexture(THREE) {
++  if (typeof document === 'undefined') return null;
++  const canvas = document.createElement('canvas');
++  canvas.width = 128;
++  canvas.height = 128;
++  const context = canvas.getContext('2d');
++  if (!context) return null;
++  const gradient = context.createRadialGradient(64, 64, 6, 64, 64, 62);
++  gradient.addColorStop(0, 'rgba(120,120,126,0.85)');
++  gradient.addColorStop(0.45, 'rgba(78,78,84,0.55)');
++  gradient.addColorStop(1, 'rgba(40,40,46,0)');
++  context.fillStyle = gradient;
++  context.fillRect(0, 0, 128, 128);
++  const texture = new THREE.CanvasTexture(canvas);
++  texture.colorSpace = THREE.SRGBColorSpace;
++  texture.needsUpdate = true;
++  return texture;
++}
++
++/** A burning wreck: a dark car, emissive fire, three smoke sprites and a tall flame glow. */
+ export function makeWreck(scene, x, z, yaw) {
+   const THREE = getThree();
+   const group = makeCar(0x2a2c30, 'sedan');
+   group.position.set(x, 0, z);
+@@ -103,33 +123,29 @@
+   group.userData.body.rotation.z = 0.06;
+   group.scale.set(1, 0.92, 1);
+   scene.add(group);
+ 
+-  const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
++  const fireMaterial = new THREE.MeshStandardMaterial({ color: 0xff8a2a, emissive: 0xff7a20, emissiveIntensity: 2.6, roughness: 0.5 });
+   const flames = [];
+   for (let index = 0; index < 7; index += 1) {
+     const flame = new THREE.Mesh(new THREE.ConeGeometry(0.3 + (index % 3) * 0.06, 1.2 + (index % 2) * 0.5, 5), fireMaterial.clone());
+     flame.material.color.setHex(index % 2 === 0 ? 0xff9a30 : 0xffd06a);
++    flame.material.emissive.setHex(index % 2 === 0 ? 0xff6a12 : 0xffb02a);
+     flame.position.set((index - 3) * 0.2, 0.95, 0.4 + (index % 2) * 0.3);
+     flame.rotation.x = Math.PI;
+     group.add(flame);
+     flames.push(flame);
+   }
+-  const smokeMaterial = new THREE.MeshBasicMaterial({ color: 0x2c2c30, transparent: true, opacity: 0.45, depthWrite: false });
++  const smokeTexture = makeSmokeTexture(THREE);
+   const puffs = [];
+-  for (let index = 0; index < 9; index += 1) {
+-    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.6 + index * 0.12, 6, 5), smokeMaterial.clone());
+-    puff.position.set((index % 3 - 1) * 0.4, 1.8 + index * 0.8, 0.2);
++  for (let index = 0; index < 3; index += 1) {
++    const material = new THREE.SpriteMaterial({ map: smokeTexture, color: 0x9a9aa0, transparent: true, opacity: 0.5, depthWrite: false, fog: true });
++    const puff = new THREE.Sprite(material);
++    puff.position.set((index - 1) * 0.5, 2.6 + index * 1.6, 0.2);
++    puff.scale.setScalar(1.5 + index * 0.5);
+     group.add(puff);
+     puffs.push(puff);
+   }
+-  const halo = new THREE.Mesh(
+-    new THREE.CircleGeometry(3.4, 20),
+-    new THREE.MeshBasicMaterial({ color: 0xff7a24, transparent: true, opacity: 0.24, depthWrite: false, blending: THREE.AdditiveBlending }),
+-  );
+-  halo.rotation.x = -Math.PI / 2;
+-  halo.position.y = 0.05;
+-  group.add(halo);
+   const light = new THREE.PointLight(0xff7a24, 26, 18, 2);
+   light.position.set(x, 1.6, z);
+   scene.add(light);
+ 
+@@ -146,20 +162,19 @@
+       for (let index = 0; index < flames.length; index += 1) {
+         const flame = flames[index];
+         const flicker = 0.7 + 0.5 * (0.5 + 0.5 * Math.sin(time * 9 + index * 1.7));
+         flame.scale.set(flicker, 0.7 + 0.7 * flicker, flicker);
+-        flame.material.opacity = 0.55 + 0.35 * flicker;
++        flame.material.emissiveIntensity = 1.8 + 1.6 * flicker;
+       }
+       for (let index = 0; index < puffs.length; index += 1) {
+         const puff = puffs[index];
+         const drift = (time * 0.55 + index * 0.42) % 5;
+-        puff.position.y = 1.8 + drift;
+-        puff.position.x = Math.sin(time * 0.9 + index) * 0.6;
+-        puff.material.opacity = Math.max(0, 0.42 - drift * 0.075);
+-        puff.scale.setScalar(1 + drift * 0.42);
++        puff.position.y = 2.2 + drift;
++        puff.position.x = Math.sin(time * 0.9 + index) * 0.5;
++        puff.material.opacity = Math.max(0, 0.5 - drift * 0.085);
++        puff.scale.setScalar(1.5 + index * 0.5 + drift * 0.42);
+       }
+       light.intensity = 20 + 12 * (0.5 + 0.5 * Math.sin(time * 11.3));
+-      halo.material.opacity = 0.18 + 0.1 * (0.5 + 0.5 * Math.sin(time * 6.2));
+     },
+   };
+   return wreck;
+ }
+
+[0m
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -195,8 +195,15 @@
+   }
+   const roof = new THREE.Mesh(new THREE.BoxGeometry(1.54, 0.1, 1.7), black);
+   roof.position.set(0, 1.56, -0.25);
+   group.add(roof);
++  // Black hood and boot panels: the classic white cruiser with black doors, roof and bonnet.
++  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.07, 1.5), black);
++  hood.position.set(0, 1.0, length / 2 - 0.85);
++  group.add(hood);
++  const boot = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.07, 1.2), black);
++  boot.position.set(0, 1.0, -length / 2 + 0.7);
++  group.add(boot);
+   const pushBar = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 0.16), black);
+   pushBar.position.set(0, 0.5, length / 2 + 0.14);
+   group.add(pushBar);
+ }
+
+[0m
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -289,25 +289,37 @@
+   const at = typeof x === 'number' && typeof z === 'number' ? { x, z } : playerPoint();
+   const heading = typeof yaw === 'number' ? yaw : Math.atan2(at.x - playerPoint().x, at.z - playerPoint().z) + Math.PI;
+   group.position.set(at.x, 0, at.z);
+   group.rotation.y = heading;
+-  // Light bar: two emissive halves side by side on the roof, red left, blue right.
+-  const barRed = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff2a1a, emissiveIntensity: 3.2, roughness: 0.35 }));
+-  barRed.position.set(-0.24, 1.68, -0.1);
++  // Light bar: red and blue emissive halves, both lit until the flash timer starts alternating.
++  const barRed = new THREE.Mesh(
++    new THREE.BoxGeometry(0.46, 0.18, 0.28),
++    new THREE.MeshStandardMaterial({ color: 0xff2a1a, emissive: 0xff2414, emissiveIntensity: 4.5, roughness: 0.3 }),
++  );
++  barRed.position.set(-0.25, 1.72, -0.1);
+   group.add(barRed);
+-  const barBlue = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x0d1a3a, emissive: 0x2a6aff, emissiveIntensity: 0.5, roughness: 0.35 }));
+-  barBlue.position.set(0.24, 1.68, -0.1);
++  const barBlue = new THREE.Mesh(
++    new THREE.BoxGeometry(0.46, 0.18, 0.28),
++    new THREE.MeshStandardMaterial({ color: 0x2a6aff, emissive: 0x2a6aff, emissiveIntensity: 4.5, roughness: 0.3 }),
++  );
++  barBlue.position.set(0.25, 1.72, -0.1);
+   group.add(barBlue);
+-  const barBase = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.06, 0.3), new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.7 }));
+-  barBase.position.set(0, 1.6, -0.1);
++  const barBase = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.06, 0.3), new THREE.MeshStandardMaterial({ color: 0x0c0f14, roughness: 0.7 }));
++  barBase.position.set(0, 1.62, -0.1);
+   group.add(barBase);
+-  // The spotlight: a translucent cone from the bar to the road ahead.
++  // The spotlight: a real SpotLight from the bar plus a faint visible cone, both trained on the
++  // player by updateUnit. Normal blending, so no additive glow sheet lands on the road.
++  const spotLight = new THREE.SpotLight(0xdfe9ff, 15, 42, 0.36, 0.5, 2);
++  spotLight.position.set(0, 2.6, 1.6);
++  spotLight.target.position.set(0, 1, 18);
++  group.add(spotLight);
++  group.add(spotLight.target);
+   const spot = new THREE.Mesh(
+-    new THREE.ConeGeometry(2.6, 13, 16, 1, true),
+-    new THREE.MeshBasicMaterial({ color: 0xdfe9ff, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }),
++    new THREE.ConeGeometry(1.1, 16, 14, 1, true),
++    new THREE.MeshBasicMaterial({ color: 0xdfe9ff, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide, fog: false }),
+   );
+-  spot.rotation.x = -Math.PI / 2;
+-  spot.position.set(0, 3.2, 6.6);
++  spot.rotation.x = Math.PI / 2;
++  spot.position.set(0, 1.7, 9.6);
+   group.add(spot);
+   scene.add(group);
+   const unit = {
+     group,
+@@ -324,9 +336,11 @@
+     radius: 1.6,
+     height: 1.7,
+     lights: [barRed, barBlue],
+     spotlight: spot,
++    spotLight,
+     flash: 0,
++    flashFrozen: false,
+   };
+   units.push(unit);
+   return unit;
+ }
+
+[0m
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -397,12 +397,23 @@
+ 
+ function updateUnit(unit, dt) {
+   if (!unit.group) return;
+   unit.flash += dt;
+-  const lit = Math.sin(unit.flash * 3.4) > 0;
+-  if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 4.2 : 0.3;
+-  if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.3 : 4.2;
+-  if (unit.spotlight) unit.spotlight.material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(unit.flash * 2.1));
++  if (unit.flashFrozen || freezeBars) {
++    // A still frame must show both halves lit: freeze the alternation on the bright phase.
++    if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = 5;
++    if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = 5;
++  } else {
++    const lit = Math.floor(unit.flash / 0.35) % 2 === 0;
++    if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 4.5 : 0.35;
++    if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.35 : 4.5;
++  }
++  if (unit.spotlight) unit.spotlight.material.opacity = 0.05 + 0.03 * (0.5 + 0.5 * Math.sin(unit.flash * 2.1));
++  if (unit.spotLight) {
++    const at = playerPoint();
++    unit.spotLight.target.position.set(at.x - unit.group.position.x, 1, at.z - unit.group.position.z);
++    unit.spotLight.target.updateMatrixWorld();
++  }
+ 
+   if (unit.spawned && cops.length < Math.min(2, wanted)) {
+     if (Math.hypot(unit.x - playerPoint().x, unit.z - playerPoint().z) < 40) {
+       for (let index = 0; index < 2; index += 1) {
+
+[0m
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -217,8 +217,9 @@
+ let heatTimer = 0;
+ let spawnTimer = 0;
+ let sirenOn = false;
+ let time = 0;
++let freezeBars = false;
+ 
+ const api = {
+   units,
+   cops,
+
+[0m
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -248,8 +248,12 @@
+   update,
+   spawnUnit,
+   spawnCop,
+   makeWreckAt,
++  freezeLights(value) {
++    freezeBars = value !== false;
++    for (let index = 0; index < units.length; index += 1) units[index].flashFrozen = freezeBars;
++  },
+   get siren() {
+     return sirenOn;
+   },
+ };
+
+[0m
+[0m← [0mEdit game/src/player.js
+Index: /root/gta6-entry/game/src/player.js
+===================================================================
+--- /root/gta6-entry/game/src/player.js
++++ /root/gta6-entry/game/src/player.js
+@@ -255,9 +255,9 @@
+     group.position.z + forwardZ * 9,
+   );
+ }
+ 
+-/** A staged pose for screenshots: 'run' leans forward with opposite arm and leg swings. */
++/** A staged pose for screenshots: 'run' leans forward, 'aim' is a two-handed pistol stance. */
+ function setPose(kind) {
+   if (kind === 'run') {
+     body.legs[0].rotation.x = 0.62;
+     body.legs[1].rotation.x = -0.52;
+@@ -265,14 +265,30 @@
+     body.legs[1].rotation.z = -0.03;
+     body.arms[0].rotation.x = -0.72;
+     body.arms[1].rotation.x = -1.34;
+     body.arms[1].rotation.z = -0.12;
++    body.pistol.rotation.x = 0;
+     group.rotation.z = 0.03;
++  } else if (kind === 'aim') {
++    // Bladed stance, both arms up: the off hand braces the gun arm at the centre line.
++    body.legs[0].rotation.x = 0.16;
++    body.legs[1].rotation.x = -0.2;
++    body.legs[0].rotation.z = 0.06;
++    body.legs[1].rotation.z = -0.06;
++    body.arms[0].rotation.x = -1.12;
++    body.arms[0].rotation.z = 0.62;
++    body.arms[1].rotation.x = -1.12;
++    body.arms[1].rotation.z = -0.22;
++    body.pistol.rotation.x = 1.12;
++    group.rotation.z = 0;
+   } else {
+     body.legs[0].rotation.x = 0;
+     body.legs[1].rotation.x = 0;
+     body.arms[0].rotation.x = 0;
++    body.arms[0].rotation.z = 0;
+     if (!player.pistolOut) body.arms[1].rotation.x = 0;
++    body.arms[1].rotation.z = player.pistolOut ? -0.12 : 0;
++    body.pistol.rotation.x = 0;
+     group.rotation.z = 0;
+   }
+ }
+ 
+
+[0m
+Now the player aim pose:
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -452,8 +452,9 @@
+     out.lights = (() => { let n = 0; scene.traverse((c) => { if (c.isLight) n += 1; }); return n; })();
+     out.calls = renderer.info.render.calls;
+     out.tris = renderer.info.render.triangles;
+     console.log('PROBE' + JSON.stringify(out));
++    console.log('BUILDINGS' + JSON.stringify(world.buildings.filter((b) => b.z > 40 && b.z < 130 && Math.abs(b.x) < 120).map((b) => [Math.round(b.x), Math.round(b.z), Math.round(b.w), Math.round(b.d), Math.round(b.height)])));
+   }
+ } else {
+   if (hud) hud.setVisible(false);
+   if (player && typeof player.setControlsEnabled === 'function') player.setControlsEnabled(false);
+
+[0m
+Let me probe the actual generated buildings to place storefronts where the camera will see them.
+[0m$ [0mcd /root/gta6-entry/game && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=8000 --screenshot=/tmp/p.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1&dbg=probe" 2>/tmp/probe.log; grep -o 'BUILDINGS.*' /tmp/probe.log | head -c 4000; grep -o 'Uncaught.*' /tmp/probe.log | head
+BUILDINGS[[-116,60,26,27,27],[-41,59,54,27,17],[-42,116,47,27,22],[29,43,27,42,28],[59,44,27,40,26],[60,117,26,27,13]]", source: http://127.0.0.1:8731/src/main.js (456)
+[0m
+Now the big street-dressing work in `shots.js`. First, the dusk tuning and removal of additive overlays:
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -103,16 +103,12 @@
+   const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfff0cf, fog: false });
+   const sun = new THREE.Mesh(new THREE.SphereGeometry(22, 16, 12), sunMaterial);
+   sun.position.set(-150, 62, -760);
+   scene.add(sun);
+-  const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xffb066, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
++  const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xffb066, transparent: true, opacity: 0.22, depthWrite: false, fog: false });
+   const glow = new THREE.Mesh(new THREE.SphereGeometry(96, 20, 14), glowMaterial);
+   glow.position.copy(sun.position);
+   scene.add(glow);
+-  const haloMaterial = new THREE.MeshBasicMaterial({ color: 0xffc78a, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+-  const halo = new THREE.Mesh(new THREE.SphereGeometry(260, 20, 14), haloMaterial);
+-  halo.position.copy(sun.position);
+-  scene.add(halo);
+   scene.userData.shotSun = sun;
+ }
+ scene.traverse((child) => {
+   if (child.isPoints) child.visible = false;
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -138,32 +138,30 @@
+  */
+ function streetDusk(scene) {
+   const THREE = getThree();
+   setSky(scene, 'dusk');
+-  scene.fog = new THREE.FogExp2(0x243049, 0.0029);
++  scene.fog = new THREE.Fog(0x2c3850, 55, 430);
+   scene.traverse((child) => {
+     if (child.isPoints) child.visible = false;
+     if (child.isHemisphereLight) {
+-      child.color.setHex(0x7288b0);
+-      child.groundColor.setHex(0x4a3424);
+-      child.intensity = 1.65;
++      child.color.setHex(0x8fa4cc);
++      child.groundColor.setHex(0x5a4430);
++      child.intensity = 2.0;
+     } else if (child.isAmbientLight) {
+-      child.color.setHex(0x8a8296);
+-      child.intensity = 0.55;
++      child.color.setHex(0x9a93a6);
++      child.intensity = 0.68;
+     } else if (child.isDirectionalLight) {
+-      child.color.setHex(0xffb26b);
+-      child.intensity = 2.9;
+-      // Sun mostly down the avenue (from behind the camera) and high: the tower shadows fall along
+-      // the street instead of laying a black blanket across the road we want to see.
++      child.color.setHex(0xffbe7a);
++      child.intensity = 3.3;
+       child.position.set(96, 330, -250);
+       if (child.target) {
+-        child.target.position.set(-2, 0, 118);
++        child.target.position.set(-2, 0, 82);
+         child.target.updateMatrixWorld();
+       }
+-      child.shadow.camera.left = -120;
+-      child.shadow.camera.right = 120;
+-      child.shadow.camera.top = 130;
+-      child.shadow.camera.bottom = -130;
++      child.shadow.camera.left = -90;
++      child.shadow.camera.right = 90;
++      child.shadow.camera.top = 100;
++      child.shadow.camera.bottom = -100;
+       child.shadow.camera.far = 900;
+       child.shadow.bias = -0.0005;
+       child.shadow.normalBias = 0.05;
+       child.shadow.mapSize.set(2048, 2048);
+@@ -172,20 +170,8 @@
+         child.shadow.map = null;
+       }
+     }
+   });
+-  // A big soft sunset glow low in the north, past the police car, to give the street a backdrop.
+-  const glow = new THREE.Mesh(
+-    new THREE.PlaneGeometry(1100, 260),
+-    new THREE.MeshBasicMaterial({ map: makeSkyTexture(THREE, [
+-      [0, 0.0, 'rgba(255,190,120,0.95)'],
+-      [0, 0.45, 'rgba(240,150,100,0.7)'],
+-      [0, 1.0, 'rgba(120,90,110,0.0)'],
+-    ]), transparent: true, opacity: 0.75, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
+-  );
+-  glow.position.set(30, 90, 470);
+-  glow.rotation.y = Math.PI;
+-  scene.add(glow);
+ }
+ 
+ function blueHour(scene) {
+   const THREE = getThree();
+
+[0m
+Now the main street-dressing block in `shots.js`:
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -215,79 +215,513 @@
+     for (let step = 0; step < 42; step += 1) peds.update(1 / 60);
+   }
+ }
+ 
+-/** Place every pedestrian on the avenue sidewalks, mid-stride, facing along their walk. */
++/** A pedestrian: two walkers per pair face each other; the rest are mid-stride along the kerb. */
++const CROWD = [
++  { x: 10.2, z: 55.5, face: 1, pair: true },
++  { x: 10.2, z: 57.1, face: -1, pair: true },
++  { x: -10.6, z: 63.0, face: 1, pair: true },
++  { x: -10.6, z: 64.7, face: -1, pair: true },
++  { x: 11.0, z: 99.5, face: 1, pair: true },
++  { x: 11.0, z: 101.1, face: -1, pair: true },
++  { x: -9.9, z: 49.0, walk: 1 },
++  { x: 9.9, z: 52.5, walk: -1 },
++  { x: -10.7, z: 58.0, walk: 1 },
++  { x: 10.6, z: 61.5, walk: -1 },
++  { x: -9.8, z: 66.5, walk: 1 },
++  { x: 10.1, z: 69.5, walk: 1 },
++  { x: -10.3, z: 72.5, walk: -1 },
++  { x: 9.8, z: 77.5, walk: -1 },
++  { x: 10.8, z: 78.8, walk: 1 },
++  { x: -10.2, z: 101.5, walk: 1 },
++];
++
++/** Place every pedestrian on the avenue sidewalks, mid-stride or standing in a pair. */
+ function stageCrowd(peds, random) {
+   const list = peds && Array.isArray(peds.peds) ? peds.peds : [];
+-  const lanes = [-11.2, -10.1, 10.4, 11.6];
+   for (let index = 0; index < list.length; index += 1) {
+     const ped = list[index];
+     const object = objectOf(ped);
+     if (!object) continue;
+-    const side = index % 2 === 0 ? 1 : -1;
+-    const x = side * (10.2 + random() * 1.9);
+-    // z bands that sit on the sidewalk blocks, not the junction between them.
+-    const band = index % 4;
+-    let z;
+-    if (band === 0) z = 58 + random() * 20;
+-    else if (band === 1) z = 98 + random() * 30;
+-    else if (band === 2) z = 118 + random() * 24;
+-    else z = 42 + random() * 16;
+-    object.position.set(x, 0.02 + (random() < 0.5 ? 0.04 : 0), z);
+-    ped.yaw = side > 0 ? Math.PI : 0;
+-    object.rotation.y = ped.yaw;
++    const spot = CROWD[index % CROWD.length];
++    const standing = !!spot.pair;
++    object.position.set(spot.x, 0.18, spot.z);
++    const yaw = standing ? (spot.face > 0 ? Math.PI : 0) : (spot.walk > 0 ? 0 : Math.PI);
++    ped.yaw = yaw;
++    object.rotation.y = yaw;
+     ped.fleeTimer = 0;
++    ped.beatTimer = 999;
+     ped.phase = random() * Math.PI * 2;
+-    if ('speed' in ped) ped.speed = 1.2 + random() * 0.5;
+-    if ('yaw' in ped) ped.yaw = object.rotation.y;
+-    ped.legs[0].rotation.x = 0.4 + random() * 0.2;
+-    ped.legs[1].rotation.x = -0.4 - random() * 0.2;
+-    ped.arms[0].rotation.x = -0.34;
+-    ped.arms[1].rotation.x = 0.34;
++    if ('speed' in ped) ped.speed = standing ? 0 : 1.1 + random() * 0.5;
++    if (ped.legs) {
++      if (standing) {
++        ped.legs[0].rotation.x = 0.04;
++        ped.legs[1].rotation.x = -0.04;
++        ped.arms[0].rotation.x = -0.12;
++        ped.arms[1].rotation.x = 0.08;
++      } else {
++        ped.legs[0].rotation.x = 0.4 + random() * 0.2;
++        ped.legs[1].rotation.x = -0.4 - random() * 0.2;
++        ped.arms[0].rotation.x = -0.34;
++        ped.arms[1].rotation.x = 0.34;
++      }
++    }
++    if (ped.health !== undefined) ped.health = 100;
++    if (ped.dead !== undefined) ped.dead = false;
++    if (ped.alive !== undefined) ped.alive = true;
+   }
+-  // A few extra walkers on the far sidewalk so the street keeps receding.
+-  const extra = lanes.slice();
+-  void extra;
+ }
+ 
+-/** Park a line of varied cars along the avenue so at least eight read in the frame. */
++/** Park a line of varied cars along both kerbs of the avenue, all inside the frame. */
+ function stageTraffic(vehicles, random) {
+   const cars = vehicles && Array.isArray(vehicles.cars) ? vehicles.cars : [];
+   const placements = [
+-    [-4.6, 78, Math.PI],
+-    [4.6, 96, 0],
+-    [-4.6, 104, Math.PI],
+-    [4.6, 112, 0],
+-    [-4.6, 120, Math.PI],
+-    [4.6, 128, 0],
+-    [-4.6, 138, Math.PI],
+-    [4.6, 146, 0],
+-    [-4.4, 56, Math.PI],
+-    [4.4, 48, 0],
++    [-5.9, 50, Math.PI],
++    [-5.9, 58.5, Math.PI],
++    [-5.9, 67, Math.PI],
++    [-5.9, 79, Math.PI],
++    [-5.9, 91, Math.PI],
++    [-5.9, 101, Math.PI],
++    [6.1, 47, 0],
++    [6.1, 55.5, 0],
++    [6.1, 69.5, 0],
++    [6.1, 88, 0],
++    [6.1, 96.5, 0],
++    [6.1, 106, 0],
+   ];
+   for (let index = 0; index < cars.length; index += 1) {
+     const car = cars[index];
+     const object = objectOf(car);
+     if (!object) continue;
+     if (index < placements.length) {
+       const spot = placements[index];
+-      const x = spot[0] + (random() - 0.5) * 0.5;
+-      const z = spot[1] + (random() - 0.5) * 2.4;
++      const x = spot[0] + (random() - 0.5) * 0.3;
++      const z = spot[1] + (random() - 0.5) * 1.2;
+       if (typeof car.x === 'number') car.x = x;
+       if (typeof car.z === 'number') car.z = z;
++      if (typeof car.vx === 'number') car.vx = 0;
++      if (typeof car.vz === 'number') car.vz = 0;
+       if (typeof car.yaw === 'number') car.yaw = spot[2];
+       if (typeof car.speed === 'number') car.speed = 0;
+       if ('parked' in car) car.parked = true;
+       object.position.set(x, 0, z);
+-      object.rotation.y = spot[2];
++      object.rotation.set(0, spot[2], 0);
++      object.visible = true;
+     } else {
+-      // The rest sit on their generated lanes; hold them still for the shot.
+       if (typeof car.speed === 'number') car.speed = 0;
++      const away = objectOf(car);
++      if (away) away.visible = false;
+     }
+   }
+ }
+ 
++// ---- street dressing (props, storefronts, neon) ----------------------------------------------
++
++function plainMaterial(THREE, color, roughness) {
++  return new THREE.MeshStandardMaterial({ color, roughness: roughness === undefined ? 0.85 : roughness, metalness: 0.08 });
++}
++
++function addBox(scene, THREE, w, h, d, x, y, z, material, ry) {
++  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
++  mesh.position.set(x, y, z);
++  if (ry) mesh.rotation.y = ry;
++  mesh.castShadow = true;
++  mesh.receiveShadow = true;
++  scene.add(mesh);
++  return mesh;
++}
++
++function makeNeonSignTexture(THREE, label, colour) {
++  if (typeof document === 'undefined') return null;
++  const canvas = document.createElement('canvas');
++  canvas.width = 512;
++  canvas.height = 160;
++  const context = canvas.getContext('2d');
++  if (!context) return null;
++  context.fillStyle = 'rgba(8,10,16,0.78)';
++  context.fillRect(0, 0, 512, 160);
++  context.strokeStyle = colour;
++  context.lineWidth = 7;
++  context.strokeRect(8, 8, 496, 144);
++  context.font = '700 92px ui-monospace, Menlo, Consolas, monospace';
++  context.textAlign = 'center';
++  context.textBaseline = 'middle';
++  context.shadowColor = colour;
++  context.shadowBlur = 30;
++  context.fillStyle = colour;
++  context.fillText(label, 256, 84);
++  context.shadowBlur = 6;
++  context.globalAlpha = 0.85;
++  context.fillStyle = '#fff8ee';
++  context.fillText(label, 256, 84);
++  const texture = new THREE.CanvasTexture(canvas);
++  texture.colorSpace = THREE.SRGBColorSpace;
++  texture.needsUpdate = true;
++  return texture;
++}
++
++function makeInteriorTexture(THREE, warmth) {
++  if (typeof document === 'undefined') return null;
++  const canvas = document.createElement('canvas');
++  canvas.width = 256;
++  canvas.height = 128;
++  const context = canvas.getContext('2d');
++  if (!context) return null;
++  const gradient = context.createLinearGradient(0, 0, 0, 128);
++  gradient.addColorStop(0, warmth || '#ffe0ac');
++  gradient.addColorStop(0.55, '#f0a95c');
++  gradient.addColorStop(1, '#7d4a22');
++  context.fillStyle = gradient;
++  context.fillRect(0, 0, 256, 128);
++  context.fillStyle = 'rgba(52,30,14,0.5)';
++  for (let row = 0; row < 3; row += 1) context.fillRect(0, 44 + row * 26, 256, 4);
++  const random = seeded(0x51a9 + Math.round(warmth ? 7 : 0));
++  for (let index = 0; index < 22; index += 1) {
++    context.fillStyle = 'rgba(38,22,12,0.45)';
++    context.fillRect(6 + index * 11 + random() * 4, 46 + Math.floor(random() * 3) * 26 - 12, 4 + random() * 5, 11);
++  }
++  context.fillStyle = 'rgba(24,16,12,0.75)';
++  context.fillRect(0, 0, 10, 128);
++  context.fillRect(246, 0, 10, 128);
++  const texture = new THREE.CanvasTexture(canvas);
++  texture.colorSpace = THREE.SRGBColorSpace;
++  texture.needsUpdate = true;
++  return texture;
++}
++
++function faceFrame(building, side) {
++  const halfW = building.w / 2;
++  const halfD = building.d / 2;
++  if (side === 0) return { cx: building.x, cz: building.z - halfD, nx: 0, nz: -1, tx: 1, tz: 0, width: building.w, yaw: Math.PI };
++  if (side === 1) return { cx: building.x, cz: building.z + halfD, nx: 0, nz: 1, tx: 1, tz: 0, width: building.w, yaw: 0 };
++  if (side === 2) return { cx: building.x - halfW, cz: building.z, nx: -1, nz: 0, tx: 0, tz: 1, width: building.d, yaw: -Math.PI / 2 };
++  return { cx: building.x + halfW, cz: building.z, nx: 1, nz: 0, tx: 0, tz: 1, width: building.d, yaw: Math.PI / 2 };
++}
++
++function facingSide(building, towards) {
++  let best = 0;
++  let bestScore = -Infinity;
++  for (let side = 0; side < 4; side += 1) {
++    const frame = faceFrame(building, side);
++    const dx = towards.x - frame.cx;
++    const dz = towards.z - frame.cz;
++    const score = frame.nx * dx + frame.nz * dz;
++    if (score > bestScore) {
++      bestScore = score;
++      best = side;
++    }
++  }
++  return best;
++}
++
++const AWNING_COLOURS = [0xd6412f, 0x2a9d8f, 0xe0a52a, 0x3d6fbd, 0xb03a6a];
++const SIGN_LOOKS = [
++  ['BAR', '#ff5f8e'],
++  ['NOODLES', '#ff9a4a'],
++  ['PAWN', '#8dff9a'],
++  ['MOTEL', '#c48bff'],
++  ['24H', '#54e0ff'],
++  ['LIQUOR', '#ffc94d'],
++  ['DINER', '#ff7a4a'],
++  ['TATTOO', '#ff5fa8'],
++  ['GUNS', '#a9ff6a'],
++  ['PHARMACY', '#6ad2ff'],
++];
++
++/** A lit ground floor: recessed doorway, a big warm window, and a bright awning strip. */
++function dressStorefront(scene, THREE, building, side, awningColour, random) {
++  const frame = faceFrame(building, side);
++  const width = frame.width;
++  const at = (u, y, out) => [frame.cx + frame.tx * u + frame.nx * out, y, frame.cz + frame.tz * u + frame.nz * out];
++  const windowWidth = Math.min(width - 5.2, 8.6);
++  const doorWidth = 1.6;
++  const total = windowWidth + doorWidth + 1.3;
++  const windowU = -total / 2 + windowWidth / 2 + 0.2;
++  const doorU = windowU + windowWidth / 2 + 0.9 + doorWidth / 2;
++
++  const interior = makeInteriorTexture(THREE);
++  const windowMaterial = new THREE.MeshStandardMaterial({
++    color: 0x2a1c12,
++    emissive: 0xffc27a,
++    emissiveIntensity: 1.25,
++    emissiveMap: interior || null,
++    map: interior || null,
++    roughness: 0.4,
++    metalness: 0.05,
++  });
++  const [wx, wy, wz] = at(windowU, 1.85, 0.08);
++  const glass = new THREE.Mesh(new THREE.PlaneGeometry(windowWidth, 2.44), windowMaterial);
++  glass.position.set(wx, wy, wz);
++  glass.rotation.y = frame.yaw;
++  scene.add(glass);
++  // Window frame: dark mullions read as a shop front rather than a glowing rectangle.
++  const frameMaterial = plainMaterial(THREE, 0x161a20, 0.6);
++  for (const u of [windowU - windowWidth / 2, windowU, windowU + windowWidth / 2]) {
++    const [mx, , mz] = at(u, 0, 0.14);
++    addBox(scene, THREE, side < 2 ? 0.14 : 1.4, 2.7, side < 2 ? 1.4 : 0.14, mx, 1.9, mz, frameMaterial);
++  }
++  for (const y of [0.5, 3.16]) {
++    const [bx, , bz] = at(windowU, 0, 0.14);
++    addBox(scene, THREE, side < 2 ? windowWidth + 0.3 : 1.4, 0.16, side < 2 ? 1.4 : windowWidth + 0.3, bx, y, bz, frameMaterial);
++  }
++
++  // Recessed door: dark reveal, two jambs, a header and a warm fanlight above.
++  const doorMaterial = plainMaterial(THREE, 0x0d1014, 0.62);
++  const [dx, , dz] = at(doorU, 0, 0.06);
++  const door = new THREE.Mesh(new THREE.PlaneGeometry(doorWidth, 2.3), doorMaterial);
++  door.position.set(dx, 1.16, dz);
++  door.rotation.y = frame.yaw;
++  scene.add(door);
++  for (const jamb of [-1, 1]) {
++    const [jx, , jz] = at(doorU + jamb * (doorWidth / 2 + 0.09), 0, 0.24);
++    addBox(scene, THREE, side < 2 ? 0.18 : 1.5, 2.5, side < 2 ? 1.5 : 0.18, jx, 1.25, jz, frameMaterial);
++  }
++  const [hx, , hz] = at(doorU, 0, 0.24);
++  addBox(scene, THREE, side < 2 ? doorWidth + 0.5 : 1.5, 0.2, side < 2 ? 1.5 : doorWidth + 0.5, hx, 2.42, hz, frameMaterial);
++  const fanlight = new THREE.Mesh(
++    new THREE.PlaneGeometry(doorWidth - 0.2, 0.32),
++    new THREE.MeshStandardMaterial({ color: 0x3a2414, emissive: 0xffd39a, emissiveIntensity: 1.4, roughness: 0.4 }),
++  );
++  const [fx, , fz] = at(doorU, 0, 0.1);
++  fanlight.position.set(fx, 2.62, fz);
++  fanlight.rotation.y = frame.yaw;
++  scene.add(fanlight);
++
++  // Awning: a bright strip above the window that catches the eye from across the street.
++  const awningMaterial = plainMaterial(THREE, awningColour, 0.72);
++  const [ax, , az] = at(windowU, 0, 0.62);
++  addBox(
++    scene,
++    THREE,
++    side < 2 ? windowWidth + 1.4 : 1.2,
++    0.2,
++    side < 2 ? 1.2 : windowWidth + 1.4,
++    ax,
++    3.24,
++    az,
++    awningMaterial,
++  );
++  const trimMaterial = plainMaterial(THREE, 0xf1ece0, 0.7);
++  const [tx, , tz] = at(windowU, 0, 1.2);
++  addBox(
++    scene,
++    THREE,
++    side < 2 ? windowWidth + 1.4 : 0.16,
++    0.3,
++    side < 2 ? 0.16 : windowWidth + 1.4,
++    tx,
++    3.1,
++    tz,
++    trimMaterial,
++  );
++  void random;
++}
++
++/** One emissive shop sign, hung proud of a building's first floor. */
++function addShopSign(scene, THREE, building, side, u, y, label, colour) {
++  const frame = faceFrame(building, side);
++  const texture = makeNeonSignTexture(THREE, label, colour);
++  if (!texture) return null;
++  const width = Math.min(8.4, frame.width - 3);
++  const height = width / 3.2;
++  const px = frame.cx + frame.tx * u + frame.nx * 0.3;
++  const pz = frame.cz + frame.tz * u + frame.nz * 0.3;
++  const backing = addBox(
++    scene,
++    THREE,
++    side < 2 ? width + 0.3 : 0.18,
++    height + 0.3,
++    side < 2 ? 0.18 : width + 0.3,
++    px,
++    y,
++    pz,
++    plainMaterial(THREE, 0x14181e, 0.8),
++  );
++  backing.castShadow = false;
++  const sign = new THREE.Mesh(
++    new THREE.PlaneGeometry(width, height),
++    new THREE.MeshBasicMaterial({ map: texture, transparent: true, toneMapped: false }),
++  );
++  sign.position.set(px + frame.nx * 0.11, y, pz + frame.nz * 0.11);
++  sign.rotation.y = frame.yaw;
++  scene.add(sign);
++  return sign;
++}
++
++function addTree(scene, THREE, x, z, scale) {
++  const trunkMaterial = plainMaterial(THREE, 0x5a432e, 0.95);
++  const leafMaterials = [0x2f5a3a, 0x356442, 0x274c33].map((colour) => plainMaterial(THREE, colour, 0.95));
++  addBox(scene, THREE, 0.34 * scale, 3.5 * scale, 0.34 * scale, x, 0.18 + 1.75 * scale, z, trunkMaterial);
++  const canopy = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), leafMaterials[0]);
++  canopy.position.set(x, 0.18 + 3.6 * scale, z);
++  canopy.scale.set(1.8 * scale, 1.5 * scale, 1.8 * scale);
++  canopy.castShadow = true;
++  scene.add(canopy);
++  for (let index = 0; index < 2; index += 1) {
++    const puffMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), leafMaterials[index + 1]);
++    puffMesh.position.set(x + (index === 0 ? 1.0 : -0.9) * scale, 0.18 + 3.1 * scale, z + (index === 0 ? 0.6 : -0.7) * scale);
++    puffMesh.scale.setScalar(1.15 * scale);
++    puffMesh.castShadow = true;
++    scene.add(puffMesh);
++  }
++}
++
++function addBench(scene, THREE, x, z, yaw) {
++  const woodMaterial = plainMaterial(THREE, 0x8a5f38, 0.86);
++  const legMaterial = plainMaterial(THREE, 0x2c3138, 0.6);
++  addBox(scene, THREE, 1.9, 0.12, 0.62, x, 0.62, z, woodMaterial, yaw);
++  addBox(scene, THREE, 1.9, 0.5, 0.1, x - Math.sin(yaw + Math.PI / 2) * 0.3, 0.92, z - Math.cos(yaw + Math.PI / 2) * 0.3, woodMaterial, yaw);
++  for (const side of [-1, 1]) {
++    addBox(scene, THREE, 0.1, 0.5, 0.5, x + Math.cos(yaw) * side * 0.8, 0.34, z - Math.sin(yaw) * side * 0.8, legMaterial, yaw);
++  }
++}
++
++function addBin(scene, THREE, x, z) {
++  const metalMaterial = plainMaterial(THREE, 0x2f353c, 0.72);
++  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 0.95, 10), metalMaterial);
++  body.position.set(x, 0.18 + 0.48, z);
++  body.castShadow = true;
++  scene.add(body);
++  const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.41, 0.41, 0.1, 10), plainMaterial(THREE, 0x1b1f24, 0.7));
++  rim.position.set(x, 0.18 + 0.99, z);
++  scene.add(rim);
++}
++
++function addHydrant(scene, THREE, x, z) {
++  const red = plainMaterial(THREE, 0xb3372a, 0.7);
++  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.23, 0.66, 8), red);
++  body.position.set(x, 0.18 + 0.33, z);
++  body.castShadow = true;
++  scene.add(body);
++  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.21, 10, 8), red);
++  dome.position.set(x, 0.18 + 0.68, z);
++  scene.add(dome);
++  for (const side of [-1, 1]) {
++    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 8), red);
++    cap.rotation.z = Math.PI / 2;
++    cap.position.set(x + side * 0.22, 0.18 + 0.44, z);
++    scene.add(cap);
++  }
++}
++
++/** A hot-dog stand: striped canopy, steel counter, glowing menu board. */
++function addKiosk(scene, THREE, x, z, yaw, trim) {
++  const steel = plainMaterial(THREE, 0xb9bec4, 0.45);
++  const dark = plainMaterial(THREE, 0x22262c, 0.8);
++  addBox(scene, THREE, 2.5, 1.05, 1.2, x, 0.18 + 0.52, z, steel, yaw);
++  addBox(scene, THREE, 2.6, 0.08, 1.35, x, 0.18 + 1.08, z, dark, yaw);
++  for (const post of [-1, 1]) {
++    addBox(scene, THREE, 0.09, 2.2, 0.09, x + Math.cos(yaw) * post * 1.15, 0.18 + 1.1, z - Math.sin(yaw) * post * 1.15, dark, yaw);
++  }
++  const canopy = plainMaterial(THREE, trim, 0.7);
++  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.16, 1.6), canopy);
++  roof.position.set(x, 0.18 + 2.24, z);
++  roof.rotation.y = yaw;
++  roof.castShadow = true;
++  scene.add(roof);
++  for (let stripe = -1; stripe <= 1; stripe += 2) {
++    addBox(scene, THREE, 2.86, 0.05, 0.34, x + Math.cos(yaw) * stripe * 0.42, 0.18 + 2.34, z - Math.sin(yaw) * stripe * 0.42, plainMaterial(THREE, 0xf5f0e4, 0.75), yaw);
++  }
++  const menu = new THREE.Mesh(
++    new THREE.PlaneGeometry(1.5, 0.62),
++    new THREE.MeshStandardMaterial({ color: 0x3a2414, emissive: 0xffcf8a, emissiveIntensity: 1.5, roughness: 0.5 }),
++  );
++  menu.position.set(x + Math.cos(yaw) * 0.1, 0.18 + 1.62, z - Math.sin(yaw) * 0.1 + (Math.cos(yaw) >= 0 ? 0.63 : -0.63));
++  menu.rotation.y = yaw;
++  scene.add(menu);
++  const warm = new THREE.PointLight(0xffd9a0, 6, 7, 2);
++  warm.position.set(x, 1.9, z);
++  scene.add(warm);
++}
++
++/** A bus shelter: steel posts, glass walls, a bench and a lit route board. */
++function addBusShelter(scene, THREE, x, z, yaw) {
++  const steel = plainMaterial(THREE, 0x3b424a, 0.55, 0.5);
++  const glassMaterial = new THREE.MeshStandardMaterial({ color: 0x8fb2c8, transparent: true, opacity: 0.24, roughness: 0.1, metalness: 0.4 });
++  const w = 5.2;
++  const d = 1.9;
++  for (const sx of [-1, 1]) {
++    for (const sz of [-1, 1]) {
++      const px = x + Math.cos(yaw) * sx * (w / 2) + Math.sin(yaw) * sz * (d / 2);
++      const pz = z - Math.sin(yaw) * sx * (w / 2) + Math.cos(yaw) * sz * (d / 2);
++      addBox(scene, THREE, 0.1, 2.7, 0.1, px, 0.18 + 1.35, pz, steel, yaw);
++    }
++  }
++  addBox(scene, THREE, w + 0.5, 0.16, d + 0.5, x, 0.18 + 2.74, z, steel, yaw);
++  const back = new THREE.Mesh(new THREE.PlaneGeometry(w, 2.2), glassMaterial);
++  back.position.set(x + Math.sin(yaw) * (d / 2), 0.18 + 1.35, z + Math.cos(yaw) * (d / 2));
++  back.rotation.y = yaw;
++  scene.add(back);
++  for (const side of [-1, 1]) {
++    const panel = new THREE.Mesh(new THREE.PlaneGeometry(d, 2.2), glassMaterial);
++    panel.position.set(x + Math.cos(yaw) * side * (w / 2), 0.18 + 1.35, z - Math.sin(yaw) * side * (w / 2));
++    panel.rotation.y = yaw + Math.PI / 2;
++    scene.add(panel);
++  }
++  addBox(scene, THREE, w - 1.2, 0.12, 0.5, x, 0.18 + 0.62, z + Math.cos(yaw) * 0.4, plainMaterial(THREE, 0x7a5a36, 0.85), yaw);
++  const board = new THREE.Mesh(
++    new THREE.PlaneGeometry(1.1, 1.7),
++    new THREE.MeshStandardMaterial({ color: 0x1c2a36, emissive: 0x63c8ff, emissiveIntensity: 0.7, roughness: 0.4 }),
++  );
++  board.position.set(x + Math.cos(yaw) * (w / 2 + 0.02), 0.18 + 1.5, z - Math.sin(yaw) * (w / 2 + 0.02));
++  board.rotation.y = yaw + Math.PI / 2;
++  scene.add(board);
++}
++
++/** Dress the street inside the frame: props, shopfronts, neon and a touch of real light. */
++function dressStreet(scene, world, cameraPoint, random) {
++  const THREE = getThree();
++  const yaw = 0;
++
++  // Sidewalk furniture along both kerbs, close enough to read in the still.
++  addBench(scene, THREE, 9.7, 54, yaw + Math.PI / 2);
++  addBench(scene, THREE, 9.7, 71.5, yaw + Math.PI / 2);
++  addBench(scene, THREE, -9.8, 60, yaw - Math.PI / 2);
++  addBench(scene, THREE, -9.8, 75, yaw - Math.PI / 2);
++  addBin(scene, THREE, 9.4, 47.5);
++  addBin(scene, THREE, 9.4, 66.5);
++  addBin(scene, THREE, -9.4, 56.5);
++  addBin(scene, THREE, -9.4, 78.5);
++  addHydrant(scene, THREE, 9.2, 61.5);
++  addHydrant(scene, THREE, -9.2, 70.5);
++  addKiosk(scene, THREE, 12.4, 57.5, yaw + Math.PI, 0xc9392c);
++  addKiosk(scene, THREE, -12.2, 67.5, yaw, 0x2a9d8f);
++  addBusShelter(scene, THREE, 12.6, 74.5, yaw);
++
++  addTree(scene, THREE, 11.4, 51.5, 1.05);
++  addTree(scene, THREE, 11.4, 65.0, 0.95);
++  addTree(scene, THREE, -11.4, 54.0, 1.0);
++  addTree(scene, THREE, -11.4, 72.0, 1.1);
++  addTree(scene, THREE, 11.2, 99.0, 1.0);
++  addTree(scene, THREE, -11.2, 103.0, 1.0);
++
++  // The nearest six buildings get a lit ground floor, and every one of them a neon sign.
++  const buildings = world && Array.isArray(world.buildings) ? world.buildings.slice() : [];
++  const ranked = buildings
++    .map((building) => ({
++      building,
++      d: Math.hypot(building.x - cameraPoint.x, building.z - cameraPoint.z),
++    }))
++    .sort((a, b) => a.d - b.d)
++    .slice(0, 6);
++
++  for (let index = 0; index < ranked.length; index += 1) {
++    const building = ranked[index].building;
++    if (building.height < 4) continue;
++    const side = facingSide(building, cameraPoint);
++    dressStorefront(scene, THREE, building, side, AWNING_COLOURS[index % AWNING_COLOURS.length], random);
++    // Two signs per shopfront: one over the awning, one on the floor above.
++    const frame = faceFrame(building, side);
++    const usable = Math.max(3, frame.width - 4);
++    const first = SIGN_LOOKS[(index * 2) % SIGN_LOOKS.length];
++    const second = SIGN_LOOKS[(index * 2 + 1) % SIGN_LOOKS.length];
++    addShopSign(scene, THREE, building, side, -usable * 0.22, 4.5, first[0], first[1]);
++    addShopSign(scene, THREE, building, side, usable * 0.26, 7.1, second[0], second[1]);
++  }
++}
++
++
+ /** Four hero towers against the sky, plus a rooftop deck the camera stands on. */
+ function buildHeroSkyline(scene, camera) {
+   const THREE = getThree();
+   const detail = new THREE.MeshStandardMaterial({ color: 0x33405a, roughness: 0.7, metalness: 0.3 });
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -8,11 +8,12 @@
+   horizon: '#e8915a',
+   low: '#ffc57a',
+ };
+ 
+-const CONTROLS_CORNER = { x: 2.4, z: 70 };
+-const POLICE_CAR = { x: 4.9, z: 84.5, yaw: Math.PI + 0.06 };
+-const WRECK = { x: 8.4, z: 88.4, yaw: 0.42 };
++const CONTROLS_CORNER = { x: 0, z: 62 };
++const POLICE_CAR = { x: -5.9, z: 68.5, yaw: Math.PI / 2 + 0.12 };
++const WRECK = { x: -7.6, z: 74.6, yaw: 0.5 };
++const COURIER = { x: 9.7, z: 72.2, yaw: -2.2 };
+ const WATERFRONT = { x: -5, z: 294, yaw: 1.15 };
+ const DROP_PLAYER = { x: -1.9, z: 292.2, yaw: -2.1 };
+ 
+ /** mulberry32 for the staging placements: the same URL must always produce the same frame. */
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -9,10 +9,10 @@
+   low: '#ffc57a',
+ };
+ 
+ const CONTROLS_CORNER = { x: 0, z: 62 };
+-const POLICE_CAR = { x: -5.9, z: 68.5, yaw: Math.PI / 2 + 0.12 };
+-const WRECK = { x: -7.6, z: 74.6, yaw: 0.5 };
++const POLICE_CAR = { x: -5.0, z: 68.6, yaw: Math.PI / 2 + 0.35 };
++const WRECK = { x: -6.8, z: 74.8, yaw: 0.5 };
+ const COURIER = { x: 9.7, z: 72.2, yaw: -2.2 };
+ const WATERFRONT = { x: -5, z: 294, yaw: 1.15 };
+ const DROP_PLAYER = { x: -1.9, z: 292.2, yaw: -2.1 };
+ 
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -234,8 +234,12 @@
+   { x: -10.3, z: 72.5, walk: -1 },
+   { x: 9.8, z: 77.5, walk: -1 },
+   { x: 10.8, z: 78.8, walk: 1 },
+   { x: -10.2, z: 101.5, walk: 1 },
++  { x: 10.4, z: 84.0, walk: 1 },
++  { x: -10.0, z: 88.0, walk: -1 },
++  { x: 10.9, z: 91.5, pair: true, face: 1 },
++  { x: 10.9, z: 93.1, pair: true, face: -1 },
+ ];
+ 
+ /** Place every pedestrian on the avenue sidewalks, mid-stride or standing in a pair. */
+ function stageCrowd(peds, random) {
+
+[0m
+Now the courier with the yellow diamond marker and outline:
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -799,9 +799,77 @@
+     camera.updateProjectionMatrix();
+   }
+ }
+ 
+-/** The stopped car at the waterfront: headlights on, a long warm cone on the quay. */
++/** The mission courier: a lit figure with a floating yellow diamond and a soft emissive rim. */
++function stageCourier(scene, THREE, position) {
++  const group = new THREE.Group();
++  group.position.set(position.x, 0.18, position.z);
++  group.rotation.y = position.yaw;
++
++  const coatMaterial = new THREE.MeshStandardMaterial({ color: 0x2f6b4f, roughness: 0.82 });
++  const trouserMaterial = new THREE.MeshStandardMaterial({ color: 0x24262e, roughness: 0.9 });
++  const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xc99a74, roughness: 0.85 });
++  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.66, 0.32), coatMaterial);
++  torso.position.y = 1.2;
++  group.add(torso);
++  const head = new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.29, 0.27), skinMaterial);
++  head.position.y = 1.67;
++  group.add(head);
++  const cap = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.34), new THREE.MeshStandardMaterial({ color: 0xb03a2e, roughness: 0.7 }));
++  cap.position.set(0, 1.83, 0.04);
++  group.add(cap);
++  for (const side of [-1, 1]) {
++    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.84, 0.2), trouserMaterial);
++    leg.position.set(side * 0.13, 0.42, 0);
++    group.add(leg);
++    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.58, 0.16), coatMaterial);
++    arm.position.set(side * 0.34, 1.22, 0);
++    arm.rotation.z = side * 0.28;
++    group.add(arm);
++  }
++  // Backpack so he reads as a courier from this angle.
++  const bag = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.46, 0.2), new THREE.MeshStandardMaterial({ color: 0x1f2833, roughness: 0.8 }));
++  bag.position.set(0, 1.2, -0.24);
++  group.add(bag);
++
++  // A subtle emissive rim: a slightly larger, back-faced copy of the torso and head shell.
++  const rimMaterial = new THREE.MeshBasicMaterial({ color: 0xffd24a, side: THREE.BackSide, transparent: true, opacity: 0.4 });
++  const rimTorso = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.74, 0.4), rimMaterial);
++  rimTorso.position.y = 1.2;
++  group.add(rimTorso);
++  const rimHead = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.37, 0.35), rimMaterial);
++  rimHead.position.y = 1.67;
++  group.add(rimHead);
++
++  // Floating yellow diamond, double-sided and always lit, readable against any backdrop.
++  const diamondMaterial = new THREE.MeshStandardMaterial({
++    color: 0xffd24a,
++    emissive: 0xffc21e,
++    emissiveIntensity: 2.2,
++    roughness: 0.3,
++    metalness: 0.1,
++  });
++  const diamond = new THREE.Mesh(new THREE.OctahedronGeometry(0.44, 0), diamondMaterial);
++  diamond.scale.set(1, 1.5, 1);
++  diamond.position.y = 2.85;
++  diamond.rotation.y = 0.4;
++  group.add(diamond);
++  const diamondBack = new THREE.Mesh(
++    new THREE.OctahedronGeometry(0.62, 0),
++    new THREE.MeshBasicMaterial({ color: 0xffe27a, transparent: true, opacity: 0.22, depthWrite: false }),
++  );
++  diamondBack.scale.set(1, 1.5, 1);
++  diamondBack.position.y = 2.85;
++  group.add(diamondBack);
++
++  group.traverse((child) => {
++    if (child.isMesh) child.castShadow = true;
++  });
++  scene.add(group);
++  return group;
++}
++
+ function lightTheCar(scene, car) {
+   const THREE = getThree();
+   if (!car) return;
+   const length = (car.userData && car.userData.length) || 4.35;
+
+[0m
+[0m→ [0mRead game/src/shots.js[90m [limit=40, offset=640][0m
+Now rewrite the `play` branch with the OTS camera, police staging, courier, and street dressing. Let me view the current play branch.
+[0m→ [0mRead game/src/shots.js[90m [limit=100, offset=895][0m
+Now let me rewrite the street dressing to build visible shopfront rows, and rewrite the play branch.
+[0m→ [0mRead game/src/shots.js[90m [limit=80, offset=676][0m
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -672,57 +672,123 @@
+   board.rotation.y = yaw + Math.PI / 2;
+   scene.add(board);
+ }
+ 
++/** A low shop block hugging the kerb, with a lit ground floor and a blade sign facing down the street. */
++function addShopBlock(scene, THREE, options) {
++  const side = options.side; // -1 left kerb, +1 right kerb
++  const z = options.z;
++  const front = 11.8;
++  const depth = 3.6;
++  const height = 7.6;
++  const building = {
++    x: side * (front + depth / 2),
++    z,
++    w: depth,
++    d: 9.6,
++    height,
++    colour: options.wallColour,
++  };
++  const wallMaterial = plainMaterial(THREE, options.wallColour, 0.9);
++  const shell = new THREE.Mesh(new THREE.BoxGeometry(depth, height, building.d), wallMaterial);
++  shell.position.set(building.x, 0.18 + height / 2, building.z);
++  shell.castShadow = true;
++  shell.receiveShadow = true;
++  scene.add(shell);
++  // A cornice so the block reads as a building, not a box: a lip at the roofline.
++  addBox(scene, THREE, depth + 0.4, 0.28, building.d + 0.4, building.x, 0.18 + height, building.z, plainMaterial(THREE, 0x3a3f47, 0.85));
++
++  const faceSide = side > 0 ? 2 : 3;
++  dressStorefront(scene, THREE, building, faceSide, options.awning, options.random);
++
++  const frame = faceFrame(building, faceSide);
++  // Facade sign flat on the wall above the awning.
++  addShopSign(scene, THREE, building, faceSide, 0, 5.3, options.label, options.colour);
++  // Blade sign sticking out over the pavement, its face turned down the avenue at the camera.
++  const bladeTexture = makeNeonSignTexture(THREE, options.label, options.colour);
++  if (bladeTexture) {
++    const blade = new THREE.Mesh(
++      new THREE.PlaneGeometry(3.3, 1.03),
++      new THREE.MeshBasicMaterial({ map: bladeTexture, transparent: true, toneMapped: false, side: THREE.DoubleSide }),
++    );
++    blade.position.set(side * (front - 1.75), 4.55, frame.cz - building.d / 2 + 2.2);
++    blade.rotation.y = Math.PI;
++    scene.add(blade);
++    const bracket = new THREE.Mesh(
++      new THREE.BoxGeometry(2.3, 0.07, 0.07),
++      plainMaterial(THREE, 0x2a2e34, 0.6),
++    );
++    bracket.position.set(side * (front - 1.15), 5.12, blade.position.z);
++    scene.add(bracket);
++  }
++  return building;
++}
++
+ /** Dress the street inside the frame: props, shopfronts, neon and a touch of real light. */
+ function dressStreet(scene, world, cameraPoint, random) {
+   const THREE = getThree();
+-  const yaw = 0;
+ 
+   // Sidewalk furniture along both kerbs, close enough to read in the still.
+-  addBench(scene, THREE, 9.7, 54, yaw + Math.PI / 2);
+-  addBench(scene, THREE, 9.7, 71.5, yaw + Math.PI / 2);
+-  addBench(scene, THREE, -9.8, 60, yaw - Math.PI / 2);
+-  addBench(scene, THREE, -9.8, 75, yaw - Math.PI / 2);
++  addBench(scene, THREE, 9.7, 54, Math.PI / 2);
++  addBench(scene, THREE, 9.7, 71.5, Math.PI / 2);
++  addBench(scene, THREE, -9.8, 60, -Math.PI / 2);
++  addBench(scene, THREE, -9.8, 75, -Math.PI / 2);
+   addBin(scene, THREE, 9.4, 47.5);
+-  addBin(scene, THREE, 9.4, 66.5);
++  addBin(scene, THREE, 9.4, 69.0);
+   addBin(scene, THREE, -9.4, 56.5);
+-  addBin(scene, THREE, -9.4, 78.5);
++  addBin(scene, THREE, -9.4, 82.5);
+   addHydrant(scene, THREE, 9.2, 61.5);
+   addHydrant(scene, THREE, -9.2, 70.5);
+-  addKiosk(scene, THREE, 12.4, 57.5, yaw + Math.PI, 0xc9392c);
+-  addKiosk(scene, THREE, -12.2, 67.5, yaw, 0x2a9d8f);
+-  addBusShelter(scene, THREE, 12.6, 74.5, yaw);
++  addKiosk(scene, THREE, 9.4, 57.5, Math.PI / 2, 0xc9392c);
++  addKiosk(scene, THREE, -9.5, 67.5, -Math.PI / 2, 0x2a9d8f);
++  addBusShelter(scene, THREE, 11.9, 78.0, 0);
+ 
+-  addTree(scene, THREE, 11.4, 51.5, 1.05);
+-  addTree(scene, THREE, 11.4, 65.0, 0.95);
+-  addTree(scene, THREE, -11.4, 54.0, 1.0);
+-  addTree(scene, THREE, -11.4, 72.0, 1.1);
+-  addTree(scene, THREE, 11.2, 99.0, 1.0);
+-  addTree(scene, THREE, -11.2, 103.0, 1.0);
++  addTree(scene, THREE, 10.6, 51.5, 1.05);
++  addTree(scene, THREE, 10.6, 65.0, 0.95);
++  addTree(scene, THREE, -10.6, 54.0, 1.0);
++  addTree(scene, THREE, -10.6, 72.0, 1.1);
++  addTree(scene, THREE, 10.6, 100.0, 1.0);
++  addTree(scene, THREE, -10.6, 104.0, 1.0);
+ 
+-  // The nearest six buildings get a lit ground floor, and every one of them a neon sign.
++  // Eight shopfront blocks bank the avenue past the junction: visible wall, lit windows,
++  // awnings and a blade sign turned towards the camera.
++  const shops = [
++    { side: -1, z: 72.0, label: 'BAR', colour: '#ff5f8e', awning: 0xd6412f, wallColour: 0x6d5a48 },
++    { side: 1, z: 74.5, label: 'NOODLES', colour: '#ff9a4a', awning: 0x2a9d8f, wallColour: 0x5c6470 },
++    { side: -1, z: 101.5, label: 'PAWN', colour: '#8dff9a', awning: 0xe0a52a, wallColour: 0x7a5f4c },
++    { side: 1, z: 104.0, label: 'MOTEL', colour: '#c48bff', awning: 0x3d6fbd, wallColour: 0x565d68 },
++    { side: -1, z: 111.5, label: '24H', colour: '#54e0ff', awning: 0x2a9d8f, wallColour: 0x6a5c50 },
++    { side: 1, z: 114.0, label: 'LIQUOR', colour: '#ffc94d', awning: 0xb03a6a, wallColour: 0x5e5a52 },
++    { side: -1, z: 121.5, label: 'DINER', colour: '#ff7a4a', awning: 0xd6412f, wallColour: 0x6d5844 },
++    { side: 1, z: 124.0, label: 'TATTOO', colour: '#ff5fa8', awning: 0xe0a52a, wallColour: 0x545a63 },
++  ];
++  for (let index = 0; index < shops.length; index += 1) {
++    const shop = shops[index];
++    addShopBlock(scene, THREE, {
++      side: shop.side,
++      z: shop.z,
++      label: shop.label,
++      colour: shop.colour,
++      awning: shop.awning,
++      wallColour: shop.wallColour,
++      random,
++    });
++  }
++
++  // The nearest real buildings also get a lit ground floor where their facade faces the street.
+   const buildings = world && Array.isArray(world.buildings) ? world.buildings.slice() : [];
+   const ranked = buildings
+-    .map((building) => ({
+-      building,
+-      d: Math.hypot(building.x - cameraPoint.x, building.z - cameraPoint.z),
+-    }))
++    .map((building) => ({ building, d: Math.hypot(building.x - cameraPoint.x, building.z - cameraPoint.z) }))
++    .filter((entry) => entry.building.z > cameraPoint.z - 4)
+     .sort((a, b) => a.d - b.d)
+-    .slice(0, 6);
+-
++    .slice(0, 4);
+   for (let index = 0; index < ranked.length; index += 1) {
+     const building = ranked[index].building;
+     if (building.height < 4) continue;
+     const side = facingSide(building, cameraPoint);
+     dressStorefront(scene, THREE, building, side, AWNING_COLOURS[index % AWNING_COLOURS.length], random);
+-    // Two signs per shopfront: one over the awning, one on the floor above.
+-    const frame = faceFrame(building, side);
+-    const usable = Math.max(3, frame.width - 4);
+-    const first = SIGN_LOOKS[(index * 2) % SIGN_LOOKS.length];
+-    const second = SIGN_LOOKS[(index * 2 + 1) % SIGN_LOOKS.length];
+-    addShopSign(scene, THREE, building, side, -usable * 0.22, 4.5, first[0], first[1]);
+-    addShopSign(scene, THREE, building, side, usable * 0.26, 7.1, second[0], second[1]);
++    const look = SIGN_LOOKS[(index + 2) % SIGN_LOOKS.length];
++    addShopSign(scene, THREE, building, side, 0, 5.0, look[0], look[1]);
+   }
+ }
+ 
+ 
+
+[0m
+Now let me replace the dressing function with a version that builds visible shopfront blocks and blade neon signs:
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -9,11 +9,11 @@
+   low: '#ffc57a',
+ };
+ 
+ const CONTROLS_CORNER = { x: 0, z: 62 };
+-const POLICE_CAR = { x: -5.0, z: 68.6, yaw: Math.PI / 2 + 0.35 };
+-const WRECK = { x: -6.8, z: 74.8, yaw: 0.5 };
+-const COURIER = { x: 9.7, z: 72.2, yaw: -2.2 };
++const POLICE_CAR = { x: -4.9, z: 72.0, yaw: Math.PI / 2 + 0.2 };
++const WRECK = { x: -1.6, z: 77.4, yaw: 0.5 };
++const COURIER = { x: -9.7, z: 72.2, yaw: -2.2 };
+ const WATERFRONT = { x: -5, z: 294, yaw: 1.15 };
+ const DROP_PLAYER = { x: -1.9, z: 292.2, yaw: -2.1 };
+ 
+ /** mulberry32 for the staging placements: the same URL must always produce the same frame. */
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -216,30 +216,30 @@
+     for (let step = 0; step < 42; step += 1) peds.update(1 / 60);
+   }
+ }
+ 
+-/** A pedestrian: two walkers per pair face each other; the rest are mid-stride along the kerb. */
++/** Pedestrians on both sidewalks ahead of the player: pairs standing, the rest mid-stride. */
+ const CROWD = [
+-  { x: 10.2, z: 55.5, face: 1, pair: true },
+-  { x: 10.2, z: 57.1, face: -1, pair: true },
+-  { x: -10.6, z: 63.0, face: 1, pair: true },
+-  { x: -10.6, z: 64.7, face: -1, pair: true },
+-  { x: 11.0, z: 99.5, face: 1, pair: true },
+-  { x: 11.0, z: 101.1, face: -1, pair: true },
+-  { x: -9.9, z: 49.0, walk: 1 },
+-  { x: 9.9, z: 52.5, walk: -1 },
+-  { x: -10.7, z: 58.0, walk: 1 },
+-  { x: 10.6, z: 61.5, walk: -1 },
+-  { x: -9.8, z: 66.5, walk: 1 },
+-  { x: 10.1, z: 69.5, walk: 1 },
+-  { x: -10.3, z: 72.5, walk: -1 },
+-  { x: 9.8, z: 77.5, walk: -1 },
+-  { x: 10.8, z: 78.8, walk: 1 },
+-  { x: -10.2, z: 101.5, walk: 1 },
+-  { x: 10.4, z: 84.0, walk: 1 },
+-  { x: -10.0, z: 88.0, walk: -1 },
+-  { x: 10.9, z: 91.5, pair: true, face: 1 },
+-  { x: 10.9, z: 93.1, pair: true, face: -1 },
++  { x: -10.3, z: 64.5, face: 1, pair: true },
++  { x: -10.3, z: 66.1, face: -1, pair: true },
++  { x: 10.4, z: 69.0, face: 1, pair: true },
++  { x: 10.4, z: 70.6, face: -1, pair: true },
++  { x: -10.0, z: 83.2, face: 1, pair: true },
++  { x: -10.0, z: 84.8, face: -1, pair: true },
++  { x: 10.6, z: 79.5, walk: 1 },
++  { x: -10.2, z: 71.0, walk: -1 },
++  { x: 10.1, z: 73.5, walk: 1 },
++  { x: -9.9, z: 76.5, walk: 1 },
++  { x: 10.8, z: 86.5, walk: -1 },
++  { x: -10.7, z: 88.0, walk: -1 },
++  { x: 10.0, z: 92.5, walk: 1 },
++  { x: -10.4, z: 94.5, walk: 1 },
++  { x: 10.9, z: 97.0, walk: -1 },
++  { x: -9.8, z: 98.5, walk: -1 },
++  { x: 10.3, z: 62.5, walk: 1 },
++  { x: -10.9, z: 61.0, walk: -1 },
++  { x: 10.2, z: 101.0, walk: 1 },
++  { x: -10.6, z: 102.5, walk: -1 },
+ ];
+ 
+ /** Place every pedestrian on the avenue sidewalks, mid-stride or standing in a pair. */
+ function stageCrowd(peds, random) {
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -991,21 +991,52 @@
+   player.money = 1250;
+   player.wanted = 3;
+   player.ammo = 12;
+   player.ammoReserve = 48;
+-  if ('place' in player) player.place(CONTROLS_CORNER.x, CONTROLS_CORNER.z, 0, -0.02);
++  if ('place' in player) player.place(CONTROLS_CORNER.x, CONTROLS_CORNER.z, 0, 0);
+   if ('setPistolOut' in player) player.setPistolOut(true);
+   if ('setVisible' in player) player.setVisible(true);
++  if (typeof player.update === 'function') player.update(0);
++  call(player, 'setPose', 'aim');
+ }
++// Street furniture, shopfronts and neon inside the frame the camera will see.
++dressStreet(scene, ctx.world, { x: 0, z: CONTROLS_CORNER.z + 14 }, random);
++
+ if (police) {
+   call(police, 'clear');
+   call(police, 'setWanted', 3);
+-  call(police, 'spawnUnit', POLICE_CAR.x, POLICE_CAR.z, POLICE_CAR.yaw);
++  const unit = call(police, 'spawnUnit', POLICE_CAR.x, POLICE_CAR.z, POLICE_CAR.yaw);
+   call(police, 'makeWreckAt', WRECK.x, WRECK.z, WRECK.yaw);
+   if ('wanted' in police) police.wanted = 3;
++  // The still must read as a chase: both bar halves lit, the spotlight on the player.
++  call(police, 'freezeLights', true);
++  if (unit) {
++    const unitObject = objectOf(unit) || (unit.group ? unit.group : null);
++    if (unitObject) {
++      unitObject.position.set(POLICE_CAR.x, 0, POLICE_CAR.z);
++      unitObject.rotation.set(0, POLICE_CAR.yaw, 0);
++      unitObject.visible = true;
++    }
++    if (unit.spotLight) {
++      const target = unit.spotLight.target;
++      if (target) {
++        target.position.set(CONTROLS_CORNER.x - POLICE_CAR.x, 1, CONTROLS_CORNER.z - POLICE_CAR.z);
++        target.updateMatrixWorld();
++      }
++    }
++    if (unit.spotlight) {
++      unit.spotlight.lookAt(CONTROLS_CORNER.x, 1.2, CONTROLS_CORNER.z);
++    }
++    if (unit.lights) {
++      for (let index = 0; index < unit.lights.length; index += 1) {
++        if (unit.lights[index] && unit.lights[index].material) unit.lights[index].material.emissiveIntensity = 5;
++      }
++    }
++  }
+ }
+ stageCrowd(peds, random);
+ stageTraffic(vehicles, random);
++stageCourier(scene, getThree(), COURIER);
+ if (ctx.combat) {
+   try {
+     ctx.combat.ammo = 12;
+   } catch {
+@@ -1020,16 +1051,22 @@
+   if ('objective' in hud) hud.objective = 'ELIMINATE THE COURIER';
+   else call(hud, 'subtitle', 'ELIMINATE THE COURIER', 60000);
+   if ('money' in hud) hud.money = 1250;
+ }
+-if (player && typeof player.update === 'function') player.update(0);
+-call(player, 'setPose', 'run');
++// Over-the-shoulder: 2.6 m back, 0.7 m to the player's right, eye at 1.55 m, looking 12 m
++// up the street at chest height so the street recedes and the player sits in the left third.
++const forwardX = Math.sin(player && typeof player.yaw === 'number' ? player.yaw : 0);
++const forwardZ = Math.cos(player && typeof player.yaw === 'number' ? player.yaw : 0);
++const rightX = -Math.cos(player && typeof player.yaw === 'number' ? player.yaw : 0);
++const rightZ = Math.sin(player && typeof player.yaw === 'number' ? player.yaw : 0);
++const px = CONTROLS_CORNER.x;
++const pz = CONTROLS_CORNER.z;
++camera.position.set(px - forwardX * 2.6 - rightX * 0.7, 1.55, pz - forwardZ * 2.6 - rightZ * 0.7);
++camera.lookAt(px + forwardX * 12, 1.4, pz + forwardZ * 12);
+ if (camera.isPerspectiveCamera) {
+-  camera.fov = 60;
++  camera.fov = 55;
+   camera.updateProjectionMatrix();
+ }
+-// Re-aim with a touch more downward pitch so the wet road fills the lower third.
+-camera.lookAt(camera.position.x, 1.1, camera.position.z + 14);
+ if (typeof window !== 'undefined' && window.location && /[?&]dbg=over/.test(window.location.search)) {
+   camera.position.set(70, 96, 10);
+   camera.lookAt(0, 4, 120);
+   if (camera.isPerspectiveCamera) {
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -51,8 +51,20 @@
+     }
+   }
+ }
+ 
++/** Like call(), but hands back the return value for staging that needs the created object. */
++function callValue(target, name, ...args) {
++  if (target && typeof target[name] === 'function') {
++    try {
++      return target[name](...args);
++    } catch {
++      return null;
++    }
++  }
++  return null;
++}
++
+ function objectOf(source) {
+   if (!source) return null;
+   if (source.isObject3D) return source;
+   const candidate = source.mesh || source.group || source.object || source.root;
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -1015,9 +1015,9 @@
+ 
+ if (police) {
+   call(police, 'clear');
+   call(police, 'setWanted', 3);
+-  const unit = call(police, 'spawnUnit', POLICE_CAR.x, POLICE_CAR.z, POLICE_CAR.yaw);
++  const unit = callValue(police, 'spawnUnit', POLICE_CAR.x, POLICE_CAR.z, POLICE_CAR.yaw);
+   call(police, 'makeWreckAt', WRECK.x, WRECK.z, WRECK.yaw);
+   if ('wanted' in police) police.wanted = 3;
+   // The still must read as a chase: both bar halves lit, the spotlight on the player.
+   call(police, 'freezeLights', true);
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -688,10 +688,10 @@
+ /** A low shop block hugging the kerb, with a lit ground floor and a blade sign facing down the street. */
+ function addShopBlock(scene, THREE, options) {
+   const side = options.side; // -1 left kerb, +1 right kerb
+   const z = options.z;
+-  const front = 11.8;
+-  const depth = 3.6;
++  const front = 14.5;
++  const depth = 4.0;
+   const height = 7.6;
+   const building = {
+     x: side * (front + depth / 2),
+     z,
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -751,9 +751,9 @@
+ addHydrant(scene, THREE, 9.2, 61.5);
+ addHydrant(scene, THREE, -9.2, 70.5);
+ addKiosk(scene, THREE, 9.4, 57.5, Math.PI / 2, 0xc9392c);
+ addKiosk(scene, THREE, -9.5, 67.5, -Math.PI / 2, 0x2a9d8f);
+-addBusShelter(scene, THREE, 11.9, 78.0, 0);
++addBusShelter(scene, THREE, 11.6, 78.0, 0);
+ 
+ addTree(scene, THREE, 10.6, 51.5, 1.05);
+ addTree(scene, THREE, 10.6, 65.0, 0.95);
+ addTree(scene, THREE, -10.6, 54.0, 1.0);
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -8,12 +8,12 @@
+   horizon: '#e8915a',
+   low: '#ffc57a',
+ };
+ 
+-const CONTROLS_CORNER = { x: 0, z: 62 };
+-const POLICE_CAR = { x: -4.9, z: 72.0, yaw: Math.PI / 2 + 0.2 };
+-const WRECK = { x: -1.6, z: 77.4, yaw: 0.5 };
+-const COURIER = { x: -9.7, z: 72.2, yaw: -2.2 };
++const CONTROLS_CORNER = { x: 0.5, z: 62 };
++const POLICE_CAR = { x: -4.6, z: 71.5, yaw: Math.PI / 2 + 0.24 };
++const WRECK = { x: -1.8, z: 76.0, yaw: 0.5 };
++const COURIER = { x: 9.5, z: 73.0, yaw: -2.2 };
+ const WATERFRONT = { x: -5, z: 294, yaw: 1.15 };
+ const DROP_PLAYER = { x: -1.9, z: 292.2, yaw: -2.1 };
+ 
+ /** mulberry32 for the staging placements: the same URL must always produce the same frame. */
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -1071,9 +1071,9 @@
+ const rightX = -Math.cos(player && typeof player.yaw === 'number' ? player.yaw : 0);
+ const rightZ = Math.sin(player && typeof player.yaw === 'number' ? player.yaw : 0);
+ const px = CONTROLS_CORNER.x;
+ const pz = CONTROLS_CORNER.z;
+-camera.position.set(px - forwardX * 2.6 - rightX * 0.7, 1.55, pz - forwardZ * 2.6 - rightZ * 0.7);
++camera.position.set(px - forwardX * 2.6 + rightX * 0.7, 1.55, pz - forwardZ * 2.6 + rightZ * 0.7);
+ camera.lookAt(px + forwardX * 12, 1.4, pz + forwardZ * 12);
+ if (camera.isPerspectiveCamera) {
+   camera.fov = 55;
+   camera.updateProjectionMatrix();
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game && for f in src/*.js; do node --check "$f" || echo "FAIL $f"; done; echo CHECKED
+CHECKED
+[0m
+[0m$ [0mcd /root/gta6-entry/game && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/root/gta6-entry/_shot_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1&dbg=probe" 2>/tmp/gta6-chrome.log; ls -l /root/gta6-entry/_shot_play.png; grep -o 'Uncaught[^"]*' /tmp/gta6-chrome.log | head; grep -o 'PROBE.*' /tmp/gta6-chrome.log | head -c 1600
+-rw-r--r-- 1 root root 465969 Nov 17 23:23 /root/gta6-entry/_shot_play.png
+PROBE{"vp":[1280,633],"player":[508,662,0.92],"peds":[[1999,490,0.96],[1657,444,0.97],[31,393,0.98],[118,381,0.98],[925,346,0.99],[909,344,0.99],[350,351,0.99],[1216,385,0.98],[239,367,0.99],[1024,360,0.99],[427,340,0.99],[897,340,0.99],[484,335,0.99],[849,334,0.99],[492,332,0.99],[820,332,0.99],[-1100,541,0.94],[6591,1068,0.82],[519,330,1],[818,330,1]],"units":[[894,390,0.98]],"cars":[null,null,[1150,439,0.97],[847,358,0.99],[783,341,0.99],[753,333,1],null,null,[282,403,0.98],[532,344,0.99],[565,335,0.99],[586,330,1],null,null,[1148,318,1],null,[31278,570,0.94],null,[-169,324,1],null],"lights":9,"calls":610,"tris":234575}", source: http://127.0.0.1:8731/src/main.js (455)
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+I can't visually inspect images, so let me analyze the screenshot programmatically.
+[0m✗ [0mcd /tmp && python3 -c "
+from PIL import Image
+im=Image.open('/root/gta6-entry/_shot_play.png').convert('RGB')
+w,h=im.size
+px=im.load()
+print('size',w,h)
+import collections
+# brightness
+tot=0
+for y in range(0,h,4):
+  for x in range(0,w,4):
+    r,g,b=px[x,y]; tot+=(r+g+b)/3
+print('avg brightness', round(tot/((w//4)*(h//4)),1))
+# red/blue saturated pixels (light bar)
+red=blue=yellow=0
+for y in range(0,h,2):
+  for x in range(0,w,2):
+    r,g,b=px[x,y]
+    if r>170 and g<90 and b<90: red+=1
+    if b>170 and r<90 and g<140: blue+=1
+    if r>180 and g>150 and b<90: yellow+=1
+print('red',red,'blue',blue,'yellow',yellow)
+"
+ failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+chunk-g rc=0

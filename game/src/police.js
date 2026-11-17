@@ -93,7 +93,27 @@ function buildCop(THREE) {
   return { group, legs: [limbs[0], limbs[2]], arms: [limbs[1], limbs[3]] };
 }
 
-/** A burning wreck: a dark car, a fire sprite, smoke puffs and a scorched halo on the road. */
+/** A soft smoke puff painted into a canvas, used as the three sprites over a burning wreck. */
+function makeSmokeTexture(THREE) {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+  const gradient = context.createRadialGradient(64, 64, 6, 64, 64, 62);
+  gradient.addColorStop(0, 'rgba(120,120,126,0.85)');
+  gradient.addColorStop(0.45, 'rgba(78,78,84,0.55)');
+  gradient.addColorStop(1, 'rgba(40,40,46,0)');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 128, 128);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** A burning wreck: a dark car, emissive fire, three smoke sprites and a tall flame glow. */
 export function makeWreck(scene, x, z, yaw) {
   const THREE = getThree();
   const group = makeCar(0x2a2c30, 'sedan');
@@ -104,31 +124,27 @@ export function makeWreck(scene, x, z, yaw) {
   group.scale.set(1, 0.92, 1);
   scene.add(group);
 
-  const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+  const fireMaterial = new THREE.MeshStandardMaterial({ color: 0xff8a2a, emissive: 0xff7a20, emissiveIntensity: 2.6, roughness: 0.5 });
   const flames = [];
   for (let index = 0; index < 7; index += 1) {
     const flame = new THREE.Mesh(new THREE.ConeGeometry(0.3 + (index % 3) * 0.06, 1.2 + (index % 2) * 0.5, 5), fireMaterial.clone());
     flame.material.color.setHex(index % 2 === 0 ? 0xff9a30 : 0xffd06a);
+    flame.material.emissive.setHex(index % 2 === 0 ? 0xff6a12 : 0xffb02a);
     flame.position.set((index - 3) * 0.2, 0.95, 0.4 + (index % 2) * 0.3);
     flame.rotation.x = Math.PI;
     group.add(flame);
     flames.push(flame);
   }
-  const smokeMaterial = new THREE.MeshBasicMaterial({ color: 0x2c2c30, transparent: true, opacity: 0.45, depthWrite: false });
+  const smokeTexture = makeSmokeTexture(THREE);
   const puffs = [];
-  for (let index = 0; index < 9; index += 1) {
-    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.6 + index * 0.12, 6, 5), smokeMaterial.clone());
-    puff.position.set((index % 3 - 1) * 0.4, 1.8 + index * 0.8, 0.2);
+  for (let index = 0; index < 3; index += 1) {
+    const material = new THREE.SpriteMaterial({ map: smokeTexture, color: 0x9a9aa0, transparent: true, opacity: 0.5, depthWrite: false, fog: true });
+    const puff = new THREE.Sprite(material);
+    puff.position.set((index - 1) * 0.5, 2.6 + index * 1.6, 0.2);
+    puff.scale.setScalar(1.5 + index * 0.5);
     group.add(puff);
     puffs.push(puff);
   }
-  const halo = new THREE.Mesh(
-    new THREE.CircleGeometry(3.4, 20),
-    new THREE.MeshBasicMaterial({ color: 0xff7a24, transparent: true, opacity: 0.24, depthWrite: false, blending: THREE.AdditiveBlending }),
-  );
-  halo.rotation.x = -Math.PI / 2;
-  halo.position.y = 0.05;
-  group.add(halo);
   const light = new THREE.PointLight(0xff7a24, 26, 18, 2);
   light.position.set(x, 1.6, z);
   scene.add(light);
@@ -147,18 +163,17 @@ export function makeWreck(scene, x, z, yaw) {
         const flame = flames[index];
         const flicker = 0.7 + 0.5 * (0.5 + 0.5 * Math.sin(time * 9 + index * 1.7));
         flame.scale.set(flicker, 0.7 + 0.7 * flicker, flicker);
-        flame.material.opacity = 0.55 + 0.35 * flicker;
+        flame.material.emissiveIntensity = 1.8 + 1.6 * flicker;
       }
       for (let index = 0; index < puffs.length; index += 1) {
         const puff = puffs[index];
         const drift = (time * 0.55 + index * 0.42) % 5;
-        puff.position.y = 1.8 + drift;
-        puff.position.x = Math.sin(time * 0.9 + index) * 0.6;
-        puff.material.opacity = Math.max(0, 0.42 - drift * 0.075);
-        puff.scale.setScalar(1 + drift * 0.42);
+        puff.position.y = 2.2 + drift;
+        puff.position.x = Math.sin(time * 0.9 + index) * 0.5;
+        puff.material.opacity = Math.max(0, 0.5 - drift * 0.085);
+        puff.scale.setScalar(1.5 + index * 0.5 + drift * 0.42);
       }
       light.intensity = 20 + 12 * (0.5 + 0.5 * Math.sin(time * 11.3));
-      halo.material.opacity = 0.18 + 0.1 * (0.5 + 0.5 * Math.sin(time * 6.2));
     },
   };
   return wreck;
@@ -181,6 +196,13 @@ function dressAsPolice(THREE, group) {
   const roof = new THREE.Mesh(new THREE.BoxGeometry(1.54, 0.1, 1.7), black);
   roof.position.set(0, 1.56, -0.25);
   group.add(roof);
+  // Black hood and boot panels: the classic white cruiser with black doors, roof and bonnet.
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.07, 1.5), black);
+  hood.position.set(0, 1.0, length / 2 - 0.85);
+  group.add(hood);
+  const boot = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.07, 1.2), black);
+  boot.position.set(0, 1.0, -length / 2 + 0.7);
+  group.add(boot);
   const pushBar = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 0.16), black);
   pushBar.position.set(0, 0.5, length / 2 + 0.14);
   group.add(pushBar);
@@ -196,6 +218,7 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
   let spawnTimer = 0;
   let sirenOn = false;
   let time = 0;
+  let freezeBars = false;
 
   const api = {
     units,
@@ -226,6 +249,10 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
     spawnUnit,
     spawnCop,
     makeWreckAt,
+    freezeLights(value) {
+      freezeBars = value !== false;
+      for (let index = 0; index < units.length; index += 1) units[index].flashFrozen = freezeBars;
+    },
     get siren() {
       return sirenOn;
     },
@@ -268,23 +295,35 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
     const heading = typeof yaw === 'number' ? yaw : Math.atan2(at.x - playerPoint().x, at.z - playerPoint().z) + Math.PI;
     group.position.set(at.x, 0, at.z);
     group.rotation.y = heading;
-    // Light bar: two emissive halves side by side on the roof, red left, blue right.
-    const barRed = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff2a1a, emissiveIntensity: 3.2, roughness: 0.35 }));
-    barRed.position.set(-0.24, 1.68, -0.1);
-    group.add(barRed);
-    const barBlue = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x0d1a3a, emissive: 0x2a6aff, emissiveIntensity: 0.5, roughness: 0.35 }));
-    barBlue.position.set(0.24, 1.68, -0.1);
-    group.add(barBlue);
-    const barBase = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.06, 0.3), new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.7 }));
-    barBase.position.set(0, 1.6, -0.1);
-    group.add(barBase);
-    // The spotlight: a translucent cone from the bar to the road ahead.
-    const spot = new THREE.Mesh(
-      new THREE.ConeGeometry(2.6, 13, 16, 1, true),
-      new THREE.MeshBasicMaterial({ color: 0xdfe9ff, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }),
+    // Light bar: red and blue emissive halves, both lit until the flash timer starts alternating.
+    const barRed = new THREE.Mesh(
+      new THREE.BoxGeometry(0.46, 0.18, 0.28),
+      new THREE.MeshStandardMaterial({ color: 0xff2a1a, emissive: 0xff2414, emissiveIntensity: 4.5, roughness: 0.3 }),
     );
-    spot.rotation.x = -Math.PI / 2;
-    spot.position.set(0, 3.2, 6.6);
+    barRed.position.set(-0.25, 1.72, -0.1);
+    group.add(barRed);
+    const barBlue = new THREE.Mesh(
+      new THREE.BoxGeometry(0.46, 0.18, 0.28),
+      new THREE.MeshStandardMaterial({ color: 0x2a6aff, emissive: 0x2a6aff, emissiveIntensity: 4.5, roughness: 0.3 }),
+    );
+    barBlue.position.set(0.25, 1.72, -0.1);
+    group.add(barBlue);
+    const barBase = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.06, 0.3), new THREE.MeshStandardMaterial({ color: 0x0c0f14, roughness: 0.7 }));
+    barBase.position.set(0, 1.62, -0.1);
+    group.add(barBase);
+    // The spotlight: a real SpotLight from the bar plus a faint visible cone, both trained on the
+    // player by updateUnit. Normal blending, so no additive glow sheet lands on the road.
+    const spotLight = new THREE.SpotLight(0xdfe9ff, 15, 42, 0.36, 0.5, 2);
+    spotLight.position.set(0, 2.6, 1.6);
+    spotLight.target.position.set(0, 1, 18);
+    group.add(spotLight);
+    group.add(spotLight.target);
+    const spot = new THREE.Mesh(
+      new THREE.ConeGeometry(1.1, 16, 14, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0xdfe9ff, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide, fog: false }),
+    );
+    spot.rotation.x = Math.PI / 2;
+    spot.position.set(0, 1.7, 9.6);
     group.add(spot);
     scene.add(group);
     const unit = {
@@ -303,7 +342,9 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
       height: 1.7,
       lights: [barRed, barBlue],
       spotlight: spot,
+      spotLight,
       flash: 0,
+      flashFrozen: false,
     };
     units.push(unit);
     return unit;
@@ -362,10 +403,21 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
   function updateUnit(unit, dt) {
     if (!unit.group) return;
     unit.flash += dt;
-    const lit = Math.sin(unit.flash * 3.4) > 0;
-    if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 4.2 : 0.3;
-    if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.3 : 4.2;
-    if (unit.spotlight) unit.spotlight.material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(unit.flash * 2.1));
+    if (unit.flashFrozen || freezeBars) {
+      // A still frame must show both halves lit: freeze the alternation on the bright phase.
+      if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = 5;
+      if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = 5;
+    } else {
+      const lit = Math.floor(unit.flash / 0.35) % 2 === 0;
+      if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 4.5 : 0.35;
+      if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.35 : 4.5;
+    }
+    if (unit.spotlight) unit.spotlight.material.opacity = 0.05 + 0.03 * (0.5 + 0.5 * Math.sin(unit.flash * 2.1));
+    if (unit.spotLight) {
+      const at = playerPoint();
+      unit.spotLight.target.position.set(at.x - unit.group.position.x, 1, at.z - unit.group.position.z);
+      unit.spotLight.target.updateMatrixWorld();
+    }
 
     if (unit.spawned && cops.length < Math.min(2, wanted)) {
       if (Math.hypot(unit.x - playerPoint().x, unit.z - playerPoint().z) < 40) {

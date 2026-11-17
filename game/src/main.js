@@ -453,6 +453,7 @@ if (shot) {
     out.calls = renderer.info.render.calls;
     out.tris = renderer.info.render.triangles;
     console.log('PROBE' + JSON.stringify(out));
+    console.log('BUILDINGS' + JSON.stringify(world.buildings.filter((b) => b.z > 40 && b.z < 130 && Math.abs(b.x) < 120).map((b) => [Math.round(b.x), Math.round(b.z), Math.round(b.w), Math.round(b.d), Math.round(b.height)])));
   }
 } else {
   if (hud) hud.setVisible(false);
