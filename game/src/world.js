@@ -24,7 +24,246 @@ const CONCRETE = [0x8d8c86, 0x9b9083, 0x7f7064, 0x69747d, 0x8d7c6b, 0xa19a8f, 0x
 const GLASS = [0x4f6070, 0x3f5364, 0x596773, 0x4a5a62];
 const CAR_COLORS = [0x8b3232, 0x2f4f8b, 0xd6d6d2, 0x2f6b4f, 0x2b2b30, 0x9a7b32, 0x5b4a7a];
 const WINDOW_LIGHT = [0xffd9a0, 0xffe6bf, 0xf7c879, 0xfff0d0, 0xdfe9ff, 0x9fc4e8];
+const WINDOW_WARM = [0xffb066, 0xff9a54, 0xffc47e, 0xff7f4a, 0xffa85e, 0xffd18a];
+const NEON = [
+  { label: 'HOTEL', colour: '#ff5f9e' },
+  { label: 'BAR', colour: '#54e0ff' },
+  { label: 'LIQUOR', colour: '#ffc94d' },
+  { label: 'NOODLES', colour: '#ff7a4a' },
+  { label: 'PAWN', colour: '#8dff8a' },
+  { label: 'MOTEL', colour: '#c48bff' },
+];
 const LEAVES = [0x2f5a3a, 0x2a5236, 0x376443, 0x305d3d, 0x284f33];
+
+/** The dusk dome: a big inverted sphere with a vertical gradient burning orange over the water. */
+function makeSkyDome(THREE) {
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(1600, 32, 24), new THREE.MeshBasicMaterial({ side: THREE.BackSide, fog: false, depthWrite: false }));
+  dome.position.set(0, -120, 0);
+  dome.renderOrder = -10;
+  dome.frustumCulled = false;
+  dome.userData.sky = true;
+  setSkyGradient(THREE, dome, 'dusk');
+  return dome;
+}
+
+/**
+ * Paint a vertical gradient onto the sky dome. The sphere's v runs from the south pole at 0 to the
+ * north pole at 1, so the horizon is v=0.5: all the interesting bands are squeezed into 0.5-0.7,
+ * which is exactly the slice a street-level camera can see above the rooftops.
+ */
+export function setSkyGradient(THREE, dome, kind) {
+  if (!dome || typeof document === 'undefined') return;
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 512;
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  const gradient = context.createLinearGradient(0, 0, 0, 512);
+  const stops = kind === 'golden'
+    ? [
+        [0.0, '#1a1218'], [0.42, '#3a2a28'], [0.47, '#8d5a3e'], [0.5, '#ffc070'],
+        [0.52, '#ffb066'], [0.55, '#e08a58'], [0.6, '#8f5f68'], [0.66, '#54486e'],
+        [0.74, '#33405e'], [0.85, '#22304c'], [1.0, '#141d38'],
+      ]
+    : kind === 'blue'
+      ? [
+          [0.0, '#080c14'], [0.42, '#141d2e'], [0.47, '#33445e'], [0.5, '#7d8496'],
+          [0.53, '#4f6484'], [0.58, '#2f4468'], [0.66, '#1d2f4e'], [0.78, '#16233b'],
+          [0.9, '#111a2c'], [1.0, '#0a1220'],
+        ]
+      : [
+          [0.0, '#161220'], [0.4, '#2c2530'], [0.46, '#8a5a44'], [0.495, '#ffbb7a'],
+          [0.51, '#f0a066'], [0.535, '#c07a5e'], [0.57, '#7a5a6c'], [0.63, '#46486a'],
+          [0.7, '#2e3a58'], [0.8, '#1e2a44'], [0.9, '#161f34'], [1.0, '#0f1728'],
+        ];
+  for (let index = 0; index < stops.length; index += 1) gradient.addColorStop(stops[index][0], stops[index][1]);
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 8, 512);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  if (dome.material.map) dome.material.map.dispose();
+  dome.material.map = texture;
+  dome.material.needsUpdate = true;
+}
+
+/** Cheap seeded noise for the canvas textures, so two screenshot takes never differ. */
+function textureRandom(seed) {
+  let a = seed | 0;
+  return function random() {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** A repeating canvas texture. `paint(context, size)` fills it; nothing is fetched from disk. */
+function canvasTexture(THREE, size, repeatX, repeatY, paint, seed) {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+  paint(context, size, textureRandom(seed === undefined ? 7 : seed));
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(repeatX, repeatY);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** Asphalt: dark grain, a few pale flecks of aggregate and faint tar seams. */
+function makeAsphaltTexture(THREE) {
+  return canvasTexture(THREE, 256, 34, 34, (context, size, random) => {
+    context.fillStyle = '#6a6e77';
+    context.fillRect(0, 0, size, size);
+    for (let index = 0; index < 9000; index += 1) {
+      const shade = 88 + Math.floor(random() * 54);
+      context.fillStyle = 'rgba(' + shade + ',' + (shade + 2) + ',' + (shade + 5) + ',0.55)';
+      const x = random() * size;
+      const y = random() * size;
+      context.fillRect(x, y, 1 + random() * 2, 1 + random() * 2);
+    }
+    for (let index = 0; index < 420; index += 1) {
+      context.fillStyle = random() < 0.5 ? 'rgba(196,196,192,0.22)' : 'rgba(40,42,48,0.35)';
+      context.fillRect(random() * size, random() * size, 1, 1);
+    }
+    context.strokeStyle = 'rgba(46,48,54,0.45)';
+    context.lineWidth = 2;
+    for (let index = 0; index < 3; index += 1) {
+      context.beginPath();
+      context.moveTo(random() * size, 0);
+      context.bezierCurveTo(random() * size, size * 0.35, random() * size, size * 0.7, random() * size, size);
+      context.stroke();
+    }
+    const glow = context.createLinearGradient(0, size * 0.38, 0, size * 0.62);
+    glow.addColorStop(0, 'rgba(180,184,192,0)');
+    glow.addColorStop(0.5, 'rgba(180,184,192,0.14)');
+    glow.addColorStop(1, 'rgba(180,184,192,0)');
+    context.fillStyle = glow;
+    context.fillRect(0, size * 0.38, size, size * 0.24);
+  }, 11);
+}
+
+/** Concrete paving slabs with joint lines and a little speckle. */
+function makeSidewalkTexture(THREE) {
+  return canvasTexture(THREE, 256, 8, 8, (context, size, random) => {
+    context.fillStyle = '#b9b5ab';
+    context.fillRect(0, 0, size, size);
+    for (let index = 0; index < 2600; index += 1) {
+      const shade = 160 + Math.floor(random() * 62);
+      context.fillStyle = 'rgba(' + shade + ',' + (shade - 4) + ',' + (shade - 12) + ',0.35)';
+      context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
+    }
+    context.strokeStyle = 'rgba(96,92,84,0.6)';
+    context.lineWidth = 3;
+    for (let step = 0; step <= 4; step += 1) {
+      const at = (step * size) / 4;
+      context.beginPath();
+      context.moveTo(at, 0);
+      context.lineTo(at, size);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(0, at);
+      context.lineTo(size, at);
+      context.stroke();
+    }
+    context.strokeStyle = 'rgba(190,186,178,0.25)';
+    context.lineWidth = 1;
+    for (let step = 0; step <= 4; step += 1) {
+      const at = (step * size) / 4 + 2;
+      context.beginPath();
+      context.moveTo(at, 0);
+      context.lineTo(at, size);
+      context.stroke();
+    }
+  }, 23);
+}
+
+/** Brick: staggered courses, warm mortar and per-brick colour jitter. */
+function makeBrickTexture(THREE) {
+  return canvasTexture(THREE, 256, 5, 7, (context, size, random) => {
+    context.fillStyle = '#8f8378';
+    context.fillRect(0, 0, size, size);
+    const rowHeight = 16;
+    const brickWidth = 32;
+    for (let row = 0; row * rowHeight < size; row += 1) {
+      const offset = row % 2 === 0 ? 0 : brickWidth / 2;
+      for (let col = -1; col * brickWidth < size + brickWidth; col += 1) {
+        const warm = 126 + Math.floor(random() * 58);
+        context.fillStyle = 'rgb(' + (warm + 20) + ',' + (warm - 12) + ',' + (warm - 28) + ')';
+        context.fillRect(col * brickWidth + offset + 2, row * rowHeight + 2, brickWidth - 3, rowHeight - 3);
+        context.fillStyle = 'rgba(255,240,220,0.05)';
+        context.fillRect(col * brickWidth + offset + 2, row * rowHeight + 2, brickWidth - 3, 2);
+      }
+    }
+  }, 31);
+}
+
+/** Curtain glass: deep blue panes between pale mullions, a few panes catching the sky. */
+function makeGlassTexture(THREE) {
+  return canvasTexture(THREE, 256, 6, 6, (context, size, random) => {
+    context.fillStyle = '#4b6377';
+    context.fillRect(0, 0, size, size);
+    const cell = 32;
+    for (let y = 0; y < size; y += cell) {
+      for (let x = 0; x < size; x += cell) {
+        const lift = Math.floor(random() * 24);
+        context.fillStyle = 'rgba(' + (92 + lift) + ',' + (118 + lift) + ',' + (140 + lift) + ',0.9)';
+        context.fillRect(x + 2, y + 2, cell - 4, cell - 4);
+        if (random() < 0.14) {
+          context.fillStyle = 'rgba(255,196,130,0.5)';
+          context.fillRect(x + 3, y + 3, cell - 6, cell - 6);
+        }
+        context.fillStyle = 'rgba(200,220,240,0.16)';
+        context.fillRect(x + 2, y + 2, cell - 4, 3);
+      }
+    }
+    context.strokeStyle = 'rgba(170,182,196,0.55)';
+    context.lineWidth = 2;
+    for (let at = 0; at <= size; at += cell) {
+      context.beginPath();
+      context.moveTo(at, 0);
+      context.lineTo(at, size);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(0, at);
+      context.lineTo(size, at);
+      context.stroke();
+    }
+  }, 43);
+}
+
+/** A neon shop sign: glowing canvas lettering, transparent everywhere else. */
+function makeNeonTexture(THREE, label, colour, size) {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = size || 512;
+  canvas.height = 128;
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.font = '700 74px ui-monospace, Menlo, Consolas, monospace';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.shadowColor = colour;
+  context.shadowBlur = 26;
+  context.fillStyle = colour;
+  context.fillText(label, canvas.width / 2, canvas.height / 2);
+  context.shadowBlur = 10;
+  context.fillStyle = '#fff8ee';
+  context.globalAlpha = 0.75;
+  context.fillText(label, canvas.width / 2, canvas.height / 2);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
 
 /** mulberry32 again, only if a caller forgets the seeded generator: buildWorld must never call Math.random. */
 function fallbackRandom(seed) {
@@ -117,6 +356,7 @@ export function buildWorld(scene, rng) {
   const buildings = [];
   const dummy = new THREE.Object3D();
   const tint = new THREE.Color();
+  const WHITE = new THREE.Color(0xffffff);
 
   /** Add one InstancedMesh for a list of { x, y, z, sx, sy, sz, rx, ry, rz, color } placements. */
   function instanced(geometry, material, items, shadows) {
@@ -147,49 +387,66 @@ export function buildWorld(scene, rng) {
     });
   }
 
-  // Sky, fog and the light rig: a cool moon for the shadows, warm shop glow low down.
-  scene.background = new THREE.Color(0x0a0f19);
-  scene.fog = new THREE.Fog(0x101828, 190, 780);
-  scene.add(new THREE.HemisphereLight(0x46618c, 0x171a20, 0.75));
-  scene.add(new THREE.AmbientLight(0x76839a, 0.3));
-  const moon = new THREE.DirectionalLight(0xb9cdeb, 1.5);
-  moon.position.set(160, 220, 110);
-  moon.castShadow = true;
-  moon.shadow.mapSize.set(2048, 2048);
-  moon.shadow.camera.left = -300;
-  moon.shadow.camera.right = 300;
-  moon.shadow.camera.top = 300;
-  moon.shadow.camera.bottom = -300;
-  moon.shadow.camera.near = 1;
-  moon.shadow.camera.far = 760;
-  moon.shadow.bias = -0.0007;
-  scene.add(moon);
-  for (const [x, z] of [[0, -44], [0, 44], [88, 0], [-88, 0]]) {
-    const lamp = new THREE.PointLight(0xffb266, 55, 40, 2);
-    lamp.position.set(x, 6, z);
+  // Dusk: a warm sun low over the water, a cool sky dome, and haze that swallows the far towers.
+  scene.background = new THREE.Color(0x25314a);
+  scene.fog = new THREE.FogExp2(0x1b2436, 0.0035);
+  const skyDome = makeSkyDome(THREE);
+  if (skyDome) scene.add(skyDome);
+  const hemi = new THREE.HemisphereLight(0x2b3a55, 0x1a1410, 0.55);
+  scene.add(hemi);
+  scene.add(new THREE.AmbientLight(0x3a3a44, 0.18));
+  const sun = new THREE.DirectionalLight(0xffb26b, 2.2);
+  // ~20 degrees above the horizon, back over the harbour so the streets get long shadows.
+  const sunDistance = 420;
+  const sunAngle = THREE.MathUtils.degToRad(20);
+  sun.position.set(Math.cos(sunAngle) * sunDistance * 0.55, Math.sin(sunAngle) * sunDistance, Math.cos(sunAngle) * sunDistance);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -170;
+  sun.shadow.camera.right = 170;
+  sun.shadow.camera.top = 170;
+  sun.shadow.camera.bottom = -170;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 900;
+  sun.shadow.bias = -0.0006;
+  sun.shadow.normalBias = 0.04;
+  sun.target.position.set(0, 0, 40);
+  scene.add(sun);
+  scene.add(sun.target);
+  // Two warm street lights near the staged corner, plus two further down the avenue.
+  for (const [x, z, heat] of [[0, 64, 60], [0, 96, 55], [0, -40, 45], [0, 24, 40]]) {
+    const lamp = new THREE.PointLight(0xffb266, heat, 34, 2);
+    lamp.position.set(x, 5.4, z);
     scene.add(lamp);
   }
 
   const starPositions = [];
-  for (let index = 0; index < 520; index += 1) starPositions.push(rand(-1000, 1000), rand(170, 560), rand(-1000, 1000));
+  for (let index = 0; index < 380; index += 1) starPositions.push(rand(-1000, 1000), rand(230, 560), rand(-1000, 1000));
   const starGeometry = new THREE.BufferGeometry();
   starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
-  scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xa9c2e2, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0.8, fog: false })));
+  scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xa9c2e2, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0.6, fog: false })));
 
-  const asphalt = new THREE.MeshStandardMaterial({ color: 0x24262d, roughness: 0.95, metalness: 0.03 });
-  const concrete = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, metalness: 0.03 });
-  const kerbMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9da6, roughness: 0.82 });
+  const asphaltMap = makeAsphaltTexture(THREE, 86, 86);
+  const asphalt = new THREE.MeshStandardMaterial({ color: 0xffffff, map: asphaltMap, roughness: 0.88, metalness: 0.04 });
+  const asphaltPlain = new THREE.MeshStandardMaterial({ color: 0x2a2d34, map: makeAsphaltTexture(THREE, 6, 24), roughness: 0.92, metalness: 0.05 });
+  const concreteMap = makeSidewalkTexture(THREE, 1, 1);
+  const concrete = new THREE.MeshStandardMaterial({ color: 0xffffff, map: concreteMap, roughness: 0.93, metalness: 0.02 });
+  const kerbMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9da6, roughness: 0.86 });
   const paint = new THREE.MeshStandardMaterial({ color: 0xd7d6c8, roughness: 0.66 });
   const metal = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.55 });
   const glow = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x0a1724, roughness: 0.15, metalness: 0.9 });
+  const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x122a3d, roughness: 0.16, metalness: 0.92 });
+  const brickMap = makeBrickTexture(THREE, 1, 1);
+  const glassMap = makeGlassTexture(THREE, 1, 1);
+  const brickWall = new THREE.MeshStandardMaterial({ color: 0xffffff, map: brickMap, roughness: 0.9, metalness: 0.02 });
+  const glassWall = new THREE.MeshStandardMaterial({ color: 0xffffff, map: glassMap, roughness: 0.25, metalness: 0.65 });
 
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(CITY + 460, CITY + 140), asphalt);
   ground.rotation.x = -Math.PI / 2;
   ground.position.set(0, 0, -6);
   ground.receiveShadow = true;
   scene.add(ground);
-  const bedrock = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x0d1119, roughness: 1 }));
+  const bedrock = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x161a21, roughness: 1 }));
   bedrock.rotation.x = -Math.PI / 2;
   bedrock.position.set(0, -0.9, 0);
   scene.add(bedrock);
@@ -198,7 +455,8 @@ export function buildWorld(scene, rng) {
   const kerbItems = [];
   const dashItems = [];
   const crossingItems = [];
-  const buildingItems = [];
+  const brickItems = [];
+  const glassItems = [];
   const windowItems = [];
   const rooftopItems = [];
   const tankItems = [];
@@ -210,8 +468,10 @@ export function buildWorld(scene, rng) {
   const leafItems = [];
   const hydrantItems = [];
   const hydrantTopItems = [];
+  const binItems = [];
   const benchItems = [];
   const benchBackItems = [];
+  const wetItems = [];
   const carBodies = [];
   const carCabins = [];
   const carWheels = [];
@@ -299,6 +559,17 @@ export function buildWorld(scene, rng) {
         armItems.push({ x: px, y: SIDEWALK_H + 4.5, z: pz, ry: Math.atan2(-dz, dx), color: 0x3d4249 });
         lampItems.push({ x: px + dx * 1.5, y: SIDEWALK_H + 4.5, z: pz + dz * 1.5, color: 0xffd39a });
         poolItems.push({ x: px + dx * 2.9, y: 0.035, z: pz + dz * 2.9, rx: -Math.PI / 2 });
+        // A wet specular smear running down the roadway from under each lamp head.
+        wetItems.push({
+          x: px + dx * 5.4,
+          y: 0.045,
+          z: pz + dz * 5.4,
+          rx: -Math.PI / 2,
+          ry: 0,
+          rz: Math.atan2(dx, dz),
+          sx: 1,
+          sy: 1,
+        });
       }
 
       if (chance(0.55)) {
@@ -307,6 +578,18 @@ export function buildWorld(scene, rng) {
         const hz = bz + rand(-24, 24);
         hydrantItems.push({ x: hx, y: SIDEWALK_H + 0.26, z: hz, color: 0xb03a2e });
         hydrantTopItems.push({ x: hx, y: SIDEWALK_H + 0.55, z: hz, color: 0xc9463a });
+      }
+
+      // Bins and the odd bench keep the kerb from reading as an empty grey strip.
+      if (chance(0.7)) {
+        const side = chance(0.5) ? 1 : -1;
+        binItems.push({ x: bx + side * (edge - 1.9), y: SIDEWALK_H, z: bz + rand(-26, 26) });
+      }
+      if (chance(0.5)) {
+        const side = chance(0.5) ? 1 : -1;
+        const bz2 = bz + rand(-26, 26);
+        benchItems.push({ x: bx + side * (edge - 2.2), y: 0.62, z: bz2, ry: side > 0 ? -Math.PI / 2 : Math.PI / 2 });
+        benchBackItems.push({ x: bx + side * (edge - 2.2) + (side > 0 ? 0.26 : -0.26), y: 0.94, z: bz2, ry: side > 0 ? -Math.PI / 2 : Math.PI / 2 });
       }
 
       for (const side of chance(0.5) ? [0, 1] : [2, 3]) {
@@ -393,7 +676,11 @@ export function buildWorld(scene, rng) {
         const glass = chance(0.26 + downtown * 0.24);
         const color = glass ? pick(GLASS) : pick(CONCRETE);
         buildings.push({ x: lot.x, z: lot.z, w: lot.w, d: lot.d, height, color });
-        buildingItems.push({ x: lot.x, y: SIDEWALK_H + height / 2, z: lot.z, sx: lot.w, sy: height, sz: lot.d, color });
+        // Glass towers get the curtain-wall texture, the rest get brick; the instance colour is
+        // lightened so the texture detail survives instead of multiplying down to mud.
+        const wallValues = glass ? glassItems : brickItems;
+        tint.set(color).lerp(WHITE, glass ? 0.55 : 0.62);
+        wallValues.push({ x: lot.x, y: SIDEWALK_H + height / 2, z: lot.z, sx: lot.w, sy: height, sz: lot.d, color: tint.getHex() });
         boxCollider(lot.x, lot.z, lot.w, lot.d, SIDEWALK_H + height);
 
         // Emissive window strips on all four faces, a lit or unlit colour per window.
@@ -409,14 +696,14 @@ export function buildWorld(scene, rng) {
           for (let col = 0; col < columnsX; col += 1) {
             const u = -innerW / 2 + colStep / 2 + col * colStep;
             const lit = chance(glass ? 0.82 : 0.66);
-            const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
+            const windowColor = lit ? (chance(0.16) ? pick(WINDOW_WARM) : pick(WINDOW_LIGHT)) : 0x22272f;
             windowItems.push({ x: lot.x + u, y, z: lot.z + lot.d / 2 + 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
             windowItems.push({ x: lot.x + u, y, z: lot.z - lot.d / 2 - 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
           }
           for (let col = 0; col < columnsZ; col += 1) {
             const u = -innerD / 2 + colStep / 2 + col * colStep;
             const lit = chance(glass ? 0.82 : 0.66);
-            const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
+            const windowColor = lit ? (chance(0.16) ? pick(WINDOW_WARM) : pick(WINDOW_LIGHT)) : 0x22272f;
             windowItems.push({ x: lot.x + lot.w / 2 + 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
             windowItems.push({ x: lot.x - lot.w / 2 - 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
           }
@@ -565,11 +852,45 @@ export function buildWorld(scene, rng) {
 
   // Everything that repeated is one draw call from here on. The unit box is stretched by each
   // instance's scale; poles and arms are pre-translated so their base sits at the placement point.
+  // Neon shop signs on the street-facing faces of the lots closest to the centre. Each is one
+  // emissive plane with canvas lettering, plus a soft additive halo so it blooms at dusk.
+  const neonSigns = [];
+  for (let index = 0; index < buildings.length; index += 1) {
+    const building = buildings[index];
+    if (Math.hypot(building.x, building.z) > 190) continue;
+    if (building.height < 7) continue;
+    if (!chance(0.55)) continue;
+    const sign = pick(NEON);
+    const texture = makeNeonTexture(THREE, sign.label, sign.colour, 512);
+    if (!texture) continue;
+    const height = 3.2;
+    const width = height * 4;
+    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, fog: true });
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+    const face = Math.floor(random() * 4);
+    const y = SIDEWALK_H + 3.4 + random() * 1.6;
+    if (face === 0) {
+      plane.position.set(building.x, y, building.z - building.d / 2 - 0.12);
+      plane.rotation.y = Math.PI;
+    } else if (face === 1) {
+      plane.position.set(building.x, y, building.z + building.d / 2 + 0.12);
+    } else if (face === 2) {
+      plane.position.set(building.x - building.w / 2 - 0.12, y, building.z);
+      plane.rotation.y = -Math.PI / 2;
+    } else {
+      plane.position.set(building.x + building.w / 2 + 0.12, y, building.z);
+      plane.rotation.y = Math.PI / 2;
+    }
+    scene.add(plane);
+    neonSigns.push(plane);
+  }
+
   const unitBox = new THREE.BoxGeometry(1, 1, 1);
-  const slabs = instanced(unitBox, concrete, slabItems, false);
+  const slabs = instanced(unitBox, new THREE.MeshStandardMaterial({ color: 0xffffff, map: makeSidewalkTexture(THREE, 3, 3), roughness: 0.94, metalness: 0.03 }), slabItems, false);
   if (slabs) slabs.receiveShadow = true;
   instanced(unitBox, kerbMaterial, kerbItems, false);
-  instanced(unitBox, concrete, buildingItems, true);
+  instanced(unitBox, brickWall, brickItems, true);
+  instanced(unitBox, glassWall, glassItems, true);
   instanced(unitBox, glow, windowItems, false);
   instanced(unitBox, concrete, rooftopItems, true);
   instanced(unitBox, glow, farWindows, false);
@@ -578,13 +899,15 @@ export function buildWorld(scene, rng) {
   instanced(new THREE.CylinderGeometry(0.11, 0.17, 4.6, 6).translate(0, 2.3, 0), metal, poleItems, true);
   instanced(new THREE.BoxGeometry(1.7, 0.1, 0.1).translate(0.85, 0, 0), metal, armItems, false);
   instanced(new THREE.SphereGeometry(0.2, 8, 6), glow, lampItems, false);
-  instanced(new THREE.CircleGeometry(3.1, 16), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
+  const pools = instanced(new THREE.CircleGeometry(4.2, 20), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
+  if (pools) pools.renderOrder = 2;
   instanced(new THREE.CylinderGeometry(0.16, 0.26, 2.9, 6).translate(0, 1.45, 0), concrete, trunkItems, true);
   instanced(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true }), leafItems, true);
   instanced(unitBox, paint, dashItems, false);
   instanced(unitBox, paint, crossingItems, false);
   instanced(new THREE.CylinderGeometry(0.17, 0.21, 0.58, 8), concrete, hydrantItems, true);
   instanced(new THREE.SphereGeometry(0.19, 8, 6), concrete, hydrantTopItems, false);
+  instanced(new THREE.CylinderGeometry(0.4, 0.34, 0.92, 8).translate(0, 0.46, 0), new THREE.MeshStandardMaterial({ color: 0x2c3238, roughness: 0.8, metalness: 0.35 }), binItems, true);
   instanced(new THREE.BoxGeometry(1.9, 0.14, 0.6).translate(0, 0.62, 0), concrete, benchItems, true);
   instanced(new THREE.BoxGeometry(1.9, 0.5, 0.12).translate(0, 0.92, -0.26), concrete, benchBackItems, true);
 
@@ -592,6 +915,15 @@ export function buildWorld(scene, rng) {
   instanced(carParts.body, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0.35 }), carBodies, true);
   instanced(carParts.cabin, new THREE.MeshStandardMaterial({ color: 0x1d2733, roughness: 0.15, metalness: 0.7 }), carCabins, true);
   instanced(carParts.wheel, new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.9 }), carWheels, false);
+
+  // Wet asphalt: a soft, stretched additive streak under each lamp, so the road catches the light.
+  const wetStreaks = instanced(
+    new THREE.PlaneGeometry(2.6, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffb878, transparent: true, opacity: 0.13, depthWrite: false, blending: THREE.AdditiveBlending }),
+    wetItems,
+    false,
+  );
+  if (wetStreaks) wetStreaks.renderOrder = 1;
 
   // Two lane light pools alternating on the central avenue, the only lights that blink.
   const blinkingPools = [];
@@ -622,6 +954,6 @@ export function buildWorld(scene, rng) {
 
   update(0);
 
-  return { colliders, roads, sidewalks, buildings, palms, update };
+  return { colliders, roads, sidewalks, buildings, palms, update, skyDome };
 }
 

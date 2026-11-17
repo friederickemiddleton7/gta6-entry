@@ -10,6 +10,50 @@ export const SCREEN_PLAY = 'play';
 export const SCREEN_PAUSED = 'paused';
 export const SCREEN_OVER = 'over';
 
+/**
+ * The look of the city: filmic tone mapping, a warm exposure and sRGB output, plus soft shadow
+ * maps. Called once by main.js after the WebGLRenderer exists; three.js is read from the global
+ * UMD build the page loads, so nothing here imports it.
+ */
+export function configureRenderer(renderer, THREE) {
+  const library = THREE || (typeof globalThis !== 'undefined' ? globalThis.THREE : null);
+  if (!renderer || !library) return;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = library.PCFSoftShadowMap;
+  renderer.toneMapping = library.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  if ('outputColorSpace' in renderer && library.SRGBColorSpace) renderer.outputColorSpace = library.SRGBColorSpace;
+}
+
+/** A late-dusk sky painted into a canvas: navy zenith, dusty rose band, amber at the horizon. */
+export function createSkyTexture(THREE, stops) {
+  const library = THREE || (typeof globalThis !== 'undefined' ? globalThis.THREE : null);
+  if (!library || typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 512;
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+  const gradient = context.createLinearGradient(0, 0, 0, 512);
+  const bands = stops || [
+    [0, '#101a33'],
+    [0.3, '#22304f'],
+    [0.52, '#4a4460'],
+    [0.66, '#8c6058'],
+    [0.76, '#d08a5c'],
+    [0.83, '#ffb26b'],
+    [0.9, '#ffd39a'],
+    [1, '#6b4c3c'],
+  ];
+  for (let index = 0; index < bands.length; index += 1) gradient.addColorStop(bands[index][0], bands[index][1]);
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 8, 512);
+  const texture = new library.CanvasTexture(canvas);
+  texture.colorSpace = library.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 /** The panel's width; its height grows with its lines: room for the title, the lines and the prompt. */
 const PANEL = { width: 600, top: 134, line: 34, bottom: 70 };
 const LIFE_SIZE = 20;

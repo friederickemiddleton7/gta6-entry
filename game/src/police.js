@@ -93,7 +93,7 @@ function buildCop(THREE) {
   return { group, legs: [limbs[0], limbs[2]], arms: [limbs[1], limbs[3]] };
 }
 
-/** A burning wreck: a dark car, a fire sprite and a column of smoke rising from the bonnet. */
+/** A burning wreck: a dark car, a fire sprite, smoke puffs and a scorched halo on the road. */
 export function makeWreck(scene, x, z, yaw) {
   const THREE = getThree();
   const group = makeCar(0x2a2c30, 'sedan');
@@ -104,25 +104,33 @@ export function makeWreck(scene, x, z, yaw) {
   group.scale.set(1, 0.92, 1);
   scene.add(group);
 
-  const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+  const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
   const flames = [];
-  for (let index = 0; index < 5; index += 1) {
-    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 5), fireMaterial.clone());
-    flame.position.set((index - 2) * 0.22, 0.9, 0.4 + (index % 2) * 0.3);
+  for (let index = 0; index < 7; index += 1) {
+    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.3 + (index % 3) * 0.06, 1.2 + (index % 2) * 0.5, 5), fireMaterial.clone());
+    flame.material.color.setHex(index % 2 === 0 ? 0xff9a30 : 0xffd06a);
+    flame.position.set((index - 3) * 0.2, 0.95, 0.4 + (index % 2) * 0.3);
     flame.rotation.x = Math.PI;
     group.add(flame);
     flames.push(flame);
   }
   const smokeMaterial = new THREE.MeshBasicMaterial({ color: 0x2c2c30, transparent: true, opacity: 0.45, depthWrite: false });
   const puffs = [];
-  for (let index = 0; index < 7; index += 1) {
-    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.55 + index * 0.1, 6, 5), smokeMaterial.clone());
-    puff.position.set((index % 3 - 1) * 0.4, 1.6 + index * 0.7, 0.2);
+  for (let index = 0; index < 9; index += 1) {
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.6 + index * 0.12, 6, 5), smokeMaterial.clone());
+    puff.position.set((index % 3 - 1) * 0.4, 1.8 + index * 0.8, 0.2);
     group.add(puff);
     puffs.push(puff);
   }
-  const light = new THREE.PointLight(0xff7a24, 22, 16, 2);
-  light.position.set(x, 1.4, z);
+  const halo = new THREE.Mesh(
+    new THREE.CircleGeometry(3.4, 20),
+    new THREE.MeshBasicMaterial({ color: 0xff7a24, transparent: true, opacity: 0.24, depthWrite: false, blending: THREE.AdditiveBlending }),
+  );
+  halo.rotation.x = -Math.PI / 2;
+  halo.position.y = 0.05;
+  group.add(halo);
+  const light = new THREE.PointLight(0xff7a24, 26, 18, 2);
+  light.position.set(x, 1.6, z);
   scene.add(light);
 
   let time = 0;
@@ -143,16 +151,39 @@ export function makeWreck(scene, x, z, yaw) {
       }
       for (let index = 0; index < puffs.length; index += 1) {
         const puff = puffs[index];
-        const drift = (time * 0.7 + index * 0.45) % 4;
-        puff.position.y = 1.6 + drift;
-        puff.position.x = Math.sin(time * 0.9 + index) * 0.5;
-        puff.material.opacity = Math.max(0, 0.5 - drift * 0.11);
-        puff.scale.setScalar(1 + drift * 0.35);
+        const drift = (time * 0.55 + index * 0.42) % 5;
+        puff.position.y = 1.8 + drift;
+        puff.position.x = Math.sin(time * 0.9 + index) * 0.6;
+        puff.material.opacity = Math.max(0, 0.42 - drift * 0.075);
+        puff.scale.setScalar(1 + drift * 0.42);
       }
-      light.intensity = 16 + 10 * (0.5 + 0.5 * Math.sin(time * 11.3));
+      light.intensity = 20 + 12 * (0.5 + 0.5 * Math.sin(time * 11.3));
+      halo.material.opacity = 0.18 + 0.1 * (0.5 + 0.5 * Math.sin(time * 6.2));
     },
   };
   return wreck;
+}
+
+/** The white-and-black cruiser livery: white body, black doors and roof, chrome bumpers. */
+function dressAsPolice(THREE, group) {
+  const white = new THREE.MeshStandardMaterial({ color: 0xe8e6e0, roughness: 0.42, metalness: 0.28 });
+  const black = new THREE.MeshStandardMaterial({ color: 0x0d1016, roughness: 0.55, metalness: 0.22 });
+  group.userData.body.material = white;
+  const length = group.userData.length || 4.35;
+  for (const side of [-1, 1]) {
+    const door = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.52, 1.9), black);
+    door.position.set(side * 0.94, 0.66, 0.1);
+    group.add(door);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.14, 4.1), black);
+    stripe.position.set(side * 0.94, 0.94, 0);
+    group.add(stripe);
+  }
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(1.54, 0.1, 1.7), black);
+  roof.position.set(0, 1.56, -0.25);
+  group.add(roof);
+  const pushBar = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 0.16), black);
+  pushBar.position.set(0, 0.5, length / 2 + 0.14);
+  group.add(pushBar);
 }
 
 export function createPolice(scene, camera, player, world, vehicles, peds, combat, audio, rng) {
@@ -232,19 +263,29 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
   function spawnUnit(x, z, yaw) {
     if (units.length >= MAX_UNITS) return null;
     const group = makeCar(0x101820, 'sedan');
-    if (group.userData.body && group.userData.body.material) {
-      group.userData.body.material = new THREE.MeshStandardMaterial({ color: 0x0f1a2c, roughness: 0.5, metalness: 0.4 });
-    }
+    dressAsPolice(THREE, group);
     const at = typeof x === 'number' && typeof z === 'number' ? { x, z } : playerPoint();
     const heading = typeof yaw === 'number' ? yaw : Math.atan2(at.x - playerPoint().x, at.z - playerPoint().z) + Math.PI;
     group.position.set(at.x, 0, at.z);
     group.rotation.y = heading;
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.14, 0.24), new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff2a1a, emissiveIntensity: 2.4, roughness: 0.4 }));
-    bar.position.set(0, 1.66, 0.1);
-    group.add(bar);
-    const barBlue = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.14, 0.24), new THREE.MeshStandardMaterial({ color: 0x0d1a3a, emissive: 0x2a6aff, emissiveIntensity: 2.4, roughness: 0.4 }));
-    barBlue.position.set(0, 1.66, -0.16);
+    // Light bar: two emissive halves side by side on the roof, red left, blue right.
+    const barRed = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff2a1a, emissiveIntensity: 3.2, roughness: 0.35 }));
+    barRed.position.set(-0.24, 1.68, -0.1);
+    group.add(barRed);
+    const barBlue = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x0d1a3a, emissive: 0x2a6aff, emissiveIntensity: 0.5, roughness: 0.35 }));
+    barBlue.position.set(0.24, 1.68, -0.1);
     group.add(barBlue);
+    const barBase = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.06, 0.3), new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.7 }));
+    barBase.position.set(0, 1.6, -0.1);
+    group.add(barBase);
+    // The spotlight: a translucent cone from the bar to the road ahead.
+    const spot = new THREE.Mesh(
+      new THREE.ConeGeometry(2.6, 13, 16, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0xdfe9ff, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }),
+    );
+    spot.rotation.x = -Math.PI / 2;
+    spot.position.set(0, 3.2, 6.6);
+    group.add(spot);
     scene.add(group);
     const unit = {
       group,
@@ -260,7 +301,8 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
       alive: true,
       radius: 1.6,
       height: 1.7,
-      lights: [bar, barBlue],
+      lights: [barRed, barBlue],
+      spotlight: spot,
       flash: 0,
     };
     units.push(unit);
@@ -319,10 +361,11 @@ export function createPolice(scene, camera, player, world, vehicles, peds, comba
 
   function updateUnit(unit, dt) {
     if (!unit.group) return;
-    unit.flash += dt * 6;
-    const lit = Math.sin(unit.flash) > 0;
-    if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 3.4 : 0.7;
-    if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.7 : 3.4;
+    unit.flash += dt;
+    const lit = Math.sin(unit.flash * 3.4) > 0;
+    if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 4.2 : 0.3;
+    if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.3 : 4.2;
+    if (unit.spotlight) unit.spotlight.material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(unit.flash * 2.1));
 
     if (unit.spawned && cops.length < Math.min(2, wanted)) {
       if (Math.hypot(unit.x - playerPoint().x, unit.z - playerPoint().z) < 40) {

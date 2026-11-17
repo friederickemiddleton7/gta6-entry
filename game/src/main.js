@@ -18,6 +18,7 @@ import { createHud } from './hud.js';
 import { createUi } from './ui.js';
 import { createAudio } from './audio.js';
 import { readShotParams, applyShot } from './shots.js';
+import { configureRenderer } from './render.js';
 import { createInput, ACTION_CONFIRM, ACTION_PAUSE } from './input.js';
 
 const MAX_FRAME = 0.25;
@@ -101,8 +102,8 @@ const seeded = (offset) => createRandom((seed ^ offset) | 0);
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight, false);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+configureRenderer(renderer, THREE);
+if (typeof window !== 'undefined' && /[?&]dbg=noshadow/.test(window.location.search)) renderer.shadowMap.enabled = false;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(62, Math.max(1, window.innerWidth) / Math.max(1, window.innerHeight), 0.1, 2200);
@@ -435,6 +436,24 @@ if (shot) {
   renderer.render(scene, camera);
   painted = 2;
   window.__shotReady = true;
+  if (typeof window !== 'undefined' && /[?&]dbg=probe/.test(window.location.search)) {
+    const out = { vp: [window.innerWidth, window.innerHeight], player: null, peds: [], units: [], cars: [], lights: 0 };
+    const project = (object) => {
+      if (!object || !object.position) return null;
+      const point = object.position.clone();
+      point.project(camera);
+      if (point.z > 1) return null;
+      return [Math.round((point.x * 0.5 + 0.5) * window.innerWidth), Math.round((-point.y * 0.5 + 0.5) * window.innerHeight), Math.round(point.z * 100) / 100];
+    };
+    out.player = project(player && player.group);
+    if (peds && peds.peds) for (let i = 0; i < peds.peds.length; i += 1) out.peds.push(project(peds.peds[i].group));
+    if (police && police.units) for (let i = 0; i < police.units.length; i += 1) out.units.push(project(police.units[i].group));
+    if (vehicles && vehicles.cars) for (let i = 0; i < vehicles.cars.length; i += 1) out.cars.push(project(vehicles.cars[i].group));
+    out.lights = (() => { let n = 0; scene.traverse((c) => { if (c.isLight) n += 1; }); return n; })();
+    out.calls = renderer.info.render.calls;
+    out.tris = renderer.info.render.triangles;
+    console.log('PROBE' + JSON.stringify(out));
+  }
 } else {
   if (hud) hud.setVisible(false);
   if (player && typeof player.setControlsEnabled === 'function') player.setControlsEnabled(false);

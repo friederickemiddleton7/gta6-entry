@@ -2,14 +2,15 @@
 // walking a beat along the kerb of one city block. When something loud happens nearby they scatter:
 // they run from a threat point for a while, then calm down and pick a new beat. Nothing here is a
 // game rule, so the pistol, missions and minimap all just read the `peds` array.
-const PED_COUNT = 14;
+const PED_COUNT = 20;
 const WALK_SPEED = 1.25;
 const RUN_SPEED = 4.4;
 const SCATTER_TIME = 7;
 
-const SHIRTS = [0x8b4a3a, 0x3a5a8b, 0x6b6b4a, 0x7a3a6b, 0x3a7a6b, 0x9a7b32, 0x555a63, 0xb0b4b8, 0x2f4f8b, 0x9a3a3a];
-const TROUSERS = [0x24262e, 0x3b3f47, 0x4a4038, 0x1d2126, 0x2c3440];
-const SKINS = [0xc99a74, 0xa87a54, 0x8a5f3f, 0xe0b48f, 0x6f4a30];
+const SHIRTS = [0x8b4a3a, 0x3a5a8b, 0x6b6b4a, 0x7a3a6b, 0x3a7a6b, 0x9a7b32, 0x555a63, 0xb0b4b8, 0x2f4f8b, 0x9a3a3a, 0xdcd2bd, 0x2f6b4f, 0x6d4a86, 0xc4643a, 0x4a7a8b];
+const TROUSERS = [0x24262e, 0x3b3f47, 0x4a4038, 0x1d2126, 0x2c3440, 0x5a5248, 0x23324a];
+const SKINS = [0xc99a74, 0xa87a54, 0x8a5f3f, 0xe0b48f, 0x6f4a30, 0xb8855f, 0xd8a882];
+const HATS = [0x1d2126, 0x8b4a3a, 0x2f4f8b, 0x6b6b4a, null];
 
 function getThree() {
   const THREE = globalThis.THREE;
@@ -64,7 +65,7 @@ function pushOut(world, radius, point) {
   }
 }
 
-function buildPed(THREE, shirt, trousers, skin) {
+function buildPed(THREE, shirt, trousers, skin, hat) {
   const group = new THREE.Group();
   const shirtMaterial = new THREE.MeshStandardMaterial({ color: shirt, roughness: 0.9 });
   const trouserMaterial = new THREE.MeshStandardMaterial({ color: trousers, roughness: 0.92 });
@@ -72,9 +73,15 @@ function buildPed(THREE, shirt, trousers, skin) {
   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.62, 0.3), shirtMaterial);
   torso.position.y = 1.18;
   group.add(torso);
+  const collar = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.08, 0.28), new THREE.MeshStandardMaterial({ color: 0x20242c, roughness: 0.9 }));
+  collar.position.y = 1.5;
+  group.add(collar);
   const head = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.28, 0.26), skinMaterial);
   head.position.y = 1.62;
   group.add(head);
+  const hair = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.09, 0.28), new THREE.MeshStandardMaterial({ color: hat === null ? 0x241d17 : hat, roughness: 0.95 }));
+  hair.position.y = 1.78;
+  group.add(hair);
   const limbs = [];
   for (const side of [-1, 1]) {
     const legGroup = new THREE.Group();
@@ -89,11 +96,17 @@ function buildPed(THREE, shirt, trousers, skin) {
     const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.56, 0.15), shirtMaterial);
     arm.position.y = -0.26;
     armGroup.add(arm);
+    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.13), skinMaterial);
+    hand.position.y = -0.55;
+    armGroup.add(hand);
     group.add(armGroup);
     limbs.push(armGroup);
   }
   group.traverse((child) => {
-    if (child.isMesh) child.castShadow = true;
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
   });
   return { group, legs: [limbs[0], limbs[2]], arms: [limbs[1], limbs[3]] };
 }
@@ -125,7 +138,7 @@ export function createPeds(scene, world, rng) {
   }
 
   function makePed(index) {
-    const look = buildPed(THREE, pick(SHIRTS), pick(TROUSERS), pick(SKINS));
+    const look = buildPed(THREE, pick(SHIRTS), pick(TROUSERS), pick(SKINS), pick(HATS));
     const at = randomBeat();
     look.group.position.set(at.x, at.y, at.z);
     scene.add(look.group);

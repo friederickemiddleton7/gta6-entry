@@ -9047,3 +9047,3559 @@ Wrote file successfully.
 [0m✗ [0mcd /root/gta6-entry/game/src && for f in *.js; do cp "$f" /tmp/x.mjs && /root/.hermes/tools/node-26.12.1-linux-x64/bin/node --check /tmp/x.mjs || echo "FAIL $f"; done; echo done failed
 [91m[1mError: [0mThe user rejected permission to use this specific tool call.
 chunk-e rc=0
+[0m
+> build · 100/deepseek-v4.1-flash-free
+[0m
+I'll start by exploring the repo structure and reading the relevant files.
+[0m$ [0mfind /root/gta6-entry -type f -not -path "*/node_modules/*" -not -path "*/.git/*" | head -50 && echo "---" && ls -la /root/gta6-entry/game/src/
+/root/gta6-entry/_shot_a.png
+/root/gta6-entry/main.ts
+/root/gta6-entry/vendor/makefun-game.ts
+/root/gta6-entry/_shot_start.png
+/root/gta6-entry/.chk/audio.mjs
+/root/gta6-entry/.chk/domstub.mjs
+/root/gta6-entry/.chk/harness2.mjs
+/root/gta6-entry/.chk/harness.mjs
+/root/gta6-entry/.chk/hud.mjs
+/root/gta6-entry/.chk/missions.mjs
+/root/gta6-entry/.chk/combat.mjs
+/root/gta6-entry/_shot_play.png
+/root/gta6-entry/screenshots/2-play.jpg
+/root/gta6-entry/screenshots/3-end.jpg
+/root/gta6-entry/screenshots/1-start.jpg
+/root/gta6-entry/.makefun/freshness.json
+/root/gta6-entry/serve.ts
+/root/gta6-entry/shots.json
+/root/gta6-entry/game/vendor/three.min.js
+/root/gta6-entry/game/src/config.js
+/root/gta6-entry/game/src/input.js
+/root/gta6-entry/game/src/peds.js
+/root/gta6-entry/game/src/ui.js
+/root/gta6-entry/game/src/police.js
+/root/gta6-entry/game/src/audio.js
+/root/gta6-entry/game/src/render.js
+/root/gta6-entry/game/src/world.js
+/root/gta6-entry/game/src/shots.js
+/root/gta6-entry/game/src/combat.js
+/root/gta6-entry/game/src/hud.js
+/root/gta6-entry/game/src/missions.js
+/root/gta6-entry/game/src/vehicles.js
+/root/gta6-entry/game/src/main.js
+/root/gta6-entry/game/src/player.js
+/root/gta6-entry/game/src/random.js
+/root/gta6-entry/game/_smoke.html
+/root/gta6-entry/game/index.html
+/root/gta6-entry/LICENSE
+/root/gta6-entry/_shot_end.png
+/root/gta6-entry/_build.log
+/root/gta6-entry/_smoke.png
+---
+total 284
+drwxr-xr-x 2 root root  4096 Nov 17 21:57 .
+drwxr-xr-x 4 root root  4096 Nov 17 15:54 ..
+-rw-r--r-- 1 root root 12764 Nov 17 21:44 audio.js
+-rw-r--r-- 1 root root 35658 Nov 17 21:46 combat.js
+-rw-r--r-- 1 root root  1487 Nov 17 15:24 config.js
+-rw-r--r-- 1 root root 21685 Nov 17 22:01 hud.js
+-rw-r--r-- 1 root root  1693 Nov 17 15:24 input.js
+-rw-r--r-- 1 root root 14032 Nov 17 22:21 main.js
+-rw-r--r-- 1 root root 28307 Nov 17 21:45 missions.js
+-rw-r--r-- 1 root root  8640 Nov 17 21:56 peds.js
+-rw-r--r-- 1 root root 11938 Nov 17 21:56 player.js
+-rw-r--r-- 1 root root 14452 Nov 17 21:57 police.js
+-rw-r--r-- 1 root root   420 Nov 17 15:24 random.js
+-rw-r--r-- 1 root root  5552 Nov 17 15:24 render.js
+-rw-r--r-- 1 root root 10091 Nov 17 22:02 shots.js
+-rw-r--r-- 1 root root 14784 Nov 17 21:57 ui.js
+-rw-r--r-- 1 root root 29178 Nov 17 21:33 vehicles.js
+-rw-r--r-- 1 root root 29595 Nov 17 21:24 world.js
+[0m
+[0m→ [0mRead game/src/render.js
+[0m→ [0mRead game/src/world.js
+[0m→ [0mRead game/src/main.js
+[0m→ [0mRead game/src/shots.js
+[0m→ [0mRead game/src/player.js
+[0m→ [0mRead game/src/police.js
+[0m→ [0mRead game/src/vehicles.js
+[0m→ [0mRead game/src/peds.js
+[0m→ [0mRead game/index.html
+[0m→ [0mRead game/src/ui.js
+[0m→ [0mRead _shot_play.png
+[0m
+[0m$ [0mcd /root/gta6-entry && ls -la _shot*.png && cat _build.log | tail -20 && git log --oneline -5 && git status --short
+-rw-r--r-- 1 root root   4257 Nov 17 21:48 _shot_a.png
+-rw-r--r-- 1 root root   4256 Nov 17 22:21 _shot_end.png
+-rw-r--r-- 1 root root 120811 Nov 17 22:22 _shot_play.png
+-rw-r--r-- 1 root root   4256 Nov 17 22:21 _shot_start.png
+-rw-r--r-- 1 root root 11938 Nov 17 21:56 player.js
+-rw-r--r-- 1 root root 14452 Nov 17 21:57 police.js
+-rw-r--r-- 1 root root   420 Nov 17 15:24 random.js
+-rw-r--r-- 1 root root  5552 Nov 17 15:24 render.js
+-rw-r--r-- 1 root root 10091 Nov 17 22:02 shots.js
+-rw-r--r-- 1 root root 14784 Nov 17 21:57 ui.js
+-rw-r--r-- 1 root root 29178 Nov 17 21:33 vehicles.js
+-rw-r--r-- 1 root root 29595 Nov 17 21:24 world.js
+[0m
+[0m→ [0mRead game/src/render.js
+[0m→ [0mRead game/src/world.js
+[0m→ [0mRead game/src/main.js
+[0m→ [0mRead game/src/shots.js
+[0m→ [0mRead game/src/player.js
+[0m→ [0mRead game/src/police.js
+[0m→ [0mRead game/src/vehicles.js
+[0m→ [0mRead game/src/peds.js
+[0m→ [0mRead game/index.html
+[0m→ [0mRead game/src/ui.js
+[0m→ [0mRead _shot_play.png
+adba9cb gta6: wire the world, player and systems into one loop with shot staging
+58c14fe Bring the kit's starter in (plumbing only)
+d5c62b0 LICENSE: MIT
+33463fd makefun anchor: drand round 34041899
+ M _build.log
+ M _shot_play.png
+?? _shot_end.png
+?? _shot_start.png
+[0m
+[0m$ [0mcd /root/gta6-entry && git log --oneline -5; git status --short | head -20; echo "---"; ls -la /root/.hermes/tools/chromium-1208/chrome-linux64/chrome 2>/dev/null || echo no-chrome
+adba9cb gta6: wire the world, player and systems into one loop with shot staging
+58c14fe Bring the kit's starter in (plumbing only)
+d5c62b0 LICENSE: MIT
+33463fd makefun anchor: drand round 34041899
+ M _build.log
+ M _shot_play.png
+?? _shot_end.png
+?? _shot_start.png
+---
+-rwxr-xr-x 1 root root 269778136 Nov  3 19:52 /root/.hermes/tools/chromium-1208/chrome-linux64/chrome
+[0m
+[0m$ [0mcd /root/gta6-entry/game && grep -o 'REVISION="[0-9a-z]*"' vendor/three.min.js | head -3; grep -c "ACESFilmicToneMapping" vendor/three.min.js; grep -c "SRGBColorSpace" vendor/three.min.js; grep -c "outputColorSpace" vendor/three.min.js
+1
+1
+1
+[0m
+[0m$ [0mcd /root/gta6-entry/game && grep -o 'REVISION *= *"[0-9a-z]*"' vendor/three.min.js | head; grep -o 'REVISION:"[0-9a-z]*"' vendor/three.min.js | head; grep -o 'r1[0-9][0-9]' vendor/three.min.js | head -3
+r150
+r160
+r169
+[0m
+[0m$ [0mcd /root/gta6-entry/game && python3 - <<'EOF'
+import re
+s=open('vendor/three.min.js').read()
+for m in re.finditer(r'.{50}REVISION.{50}', s):
+    print(m.group(0))
+    break
+print(len(s))
+EOF
+_GREEN_RGTC2_Format=At,t.RED_RGTC1_Format=36283,t.REVISION=e,t.RGBADepthPacking=3201,t.RGBAFormat=j,t.RGBAIn
+669884
+[0m
+[0m$ [0mcd /root/gta6-entry/game && python3 - <<'EOF'
+import re
+s=open('vendor/three.min.js').read()
+i=s.find('t.REVISION=e')
+# find ",e=" before that
+seg=s[:i]
+for m in re.finditer(r'[;,]e="([0-9]+[a-z]?)"', seg):
+    print(m.group(0), m.start())
+print(seg[-3000:-2500])
+EOF
+ointLight=Qh,t.PointLightHelper=class extends Ji{constructor(t,e,n){super(new Zc(e,4,2),new pi({wireframe:!0,fog:!1,toneMapped:!1})),this.light=t,this.color=n,this.type="PointLightHelper",this.matrix=this.light.matrixWorld,this.matrixAutoUpdate=!1,this.update()}dispose(){this.geometry.dispose(),this.material.dispose()}update(){this.light.updateWorldMatrix(!0,!1),void 0!==this.color?this.material.color.set(this.color):this.material.color.copy(this.light.color)}},t.Points=Pl,t.PointsMaterial=wl,t.
+[0m
+[0m$ [0mcd /root/gta6-entry/game && python3 - <<'EOF'
+s=open('vendor/three.min.js').read()
+for k in ['useLegacyLights','outputColorSpace','SRGBColorSpace','ACESFilmicToneMapping','toneMappingExposure','PCFSoftShadowMap','FogExp2','emissiveMap','map=']:
+    print(k, s.count(k))
+i=s.find('REVISION')
+print(s[i-200:i+50])
+EOF
+useLegacyLights 15
+outputColorSpace 21
+SRGBColorSpace 2
+ACESFilmicToneMapping 2
+toneMappingExposure 9
+PCFSoftShadowMap 1
+FogExp2 6
+emissiveMap 39
+map= 31
+pertyMixer=Cu,t.QuadraticBezierCurve=Jl,t.QuadraticBezierCurve3=Kl,t.Quaternion=ke,t.QuaternionKeyframeTrack=Rh,t.QuaternionLinearInterpolant=Ah,t.RED_GREEN_RGTC2_Format=At,t.RED_RGTC1_Format=36283,t.REVISION=e,t.RGBADepthPacking=3201,t.RGBAFormat=j,
+[0m
+[0m$ [0mcd /root/gta6-entry/game && python3 - <<'EOF'
+import re
+s=open('vendor/three.min.js').read()
+# module typically begins with const e="160" or similar near start
+print(s[:600])
+EOF
+console.warn('Scripts "build/three.js" and "build/three.min.js" are deprecated with r150+, and will be removed with r160. Please use ES Modules or alternatives: https://threejs.org/docs/index.html#manual/en/introduction/Installation'),
+/**
+ * @license
+ * Copyright 2010-2023 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ */
+function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).THREE={})}(this,(function(t){"use strict";const e="160",n=1,i=2,r=3,s=0,a=1,o=
+[0m
+[0m$ [0mcd /root/gta6-entry/game && (python3 -m http.server 8731 --bind 127.0.0.1 >/tmp/gta6-http.log 2>&1 &) ; sleep 1; curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8731/index.html
+200
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/base_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/base-chrome.log; ls -la /tmp/base_play.png; grep -i "uncaught\|error" /tmp/base-chrome.log | head -20
+-rw-r--r-- 1 root root 120811 Nov 17 22:28 /tmp/base_play.png
+[4009319:4009319:1117/222752.666583:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && grep -rn "from './render.js'\|render.js" --include=*.js . | head; echo ---; grep -n "showBanner\|setClock\|setVisible\|objective" hud.js | head -40; echo ---; cat config.js
+---
+97:  let objectiveOverride = '';
+113:  const objectiveNode = element('div', 'position:absolute;top:18px;left:50%;transform:translateX(-50%);max-width:60vw;text-align:center;font-size:15px;letter-spacing:0.12em;text-transform:uppercase;color:#ffd76a;text-shadow:0 2px 6px rgba(0,0,0,0.85);', root);
+177:  function showBanner(title, sub, ms) {
+219:  function setVisible(visible) {
+224:  function setClock(minutes) {
+233:    showBanner,
+238:    setClock,
+239:    setVisible,
+248:    get objective() {
+249:      return objectiveOverride;
+251:    set objective(value) {
+252:      objectiveOverride = typeof value === 'string' ? value : '';
+258:    if (objectiveOverride) return objectiveOverride;
+263:    if (typeof current.objective === 'string') return current.objective;
+487:    const objective = currentObjectiveText();
+488:    if (objectiveNode && objective !== lastObjective) {
+489:      lastObjective = objective;
+490:      objectiveNode.textContent = objective;
+491:      objectiveNode.style.opacity = objective ? '1' : '0';
+---
+// Every tuning number and colour in one place. The playfield is a fixed 1280x720 logical area;
+// the renderer scales it to the window, so no rule below depends on the screen size.
+
+export const FIELD = { width: 1280, height: 720, groundY: 664 };
+
+/** The simulation's fixed step, in seconds: 60 updates a second whatever the display's rate. */
+export const STEP = 1 / 60;
+
+export const PLAYER = {
+  width: 72,
+  height: 24,
+  speed: 560,
+  invulnerable: 1.5,
+};
+
+export const LIVES = 3;
+
+export const BLOCK = {
+  minWidth: 40,
+  maxWidth: 110,
+  height: 36,
+  speed: 240,
+  speedPerLevel: 30,
+  speedJitter: 90,
+  interval: 0.55,
+  intervalScale: 0.88,
+  minInterval: 0.14,
+  dodgePoints: 1,
+};
+
+export const COIN = {
+  size: 24,
+  speed: 190,
+  speedPerLevel: 14,
+  interval: 1.4,
+  intervalJitter: 0.8,
+  points: 10,
+};
+
+/** Seconds of play per level, and the last level: speeds and spawn rates stop growing there. */
+export const LEVEL = { seconds: 12, max: 12 };
+
+/** How many falling things can exist at once; the pool is allocated once, at boot. */
+export const POOL_SIZE = 64;
+
+export const PALETTE = {
+  backdrop: '#11141b',
+  sky: '#1b1f2a',
+  ground: '#2a3040',
+  player: '#4fc3f7',
+  block: '#e5534b',
+  coin: '#f2c94c',
+  panel: '#252b38',
+  text: '#eef1f5',
+  muted: '#8b93a3',
+};
+
+export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+
+/** Where the best score is kept between visits (this browser only). */
+export const BEST_KEY = 'block-dodger.best';
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+for f in ['/tmp/base_play.png','_shot_start.png','_shot_end.png']:
+    im=Image.open(f).convert('RGB')
+    w,h=im.size
+    px=list(im.getdata())
+    n=len(px)
+    mean=[sum(p[i] for p in px)/n for i in range(3)]
+    import statistics
+    var=[statistics.pstdev([p[i] for p in px[::37]]) for i in range(3)]
+    print(f, im.size, ['%.1f'%m for m in mean], ['%.1f'%v for v in var], len(set(px[::101])))
+"
+/tmp/base_play.png (1280, 720) ['36.7', '41.9', '50.2'] ['45.6', '44.7', '42.2'] 868
+_shot_start.png (1280, 720) ['10.0', '15.0', '25.0'] ['0.0', '0.0', '0.0'] 1
+_shot_end.png (1280, 720) ['10.0', '15.0', '25.0'] ['0.0', '0.0', '0.0'] 1
+[0m
+[0m$ [0mcd /root/gta6-entry && for s in start end; do /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/base_$s.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=$s&seed=1" 2>/tmp/base-$s.log; ls -la /tmp/base_$s.png; grep -i "uncaught\|console" /tmp/base-$s.log | head -10; done
+-rw-r--r-- 1 root root 86357 Nov 17 22:30 /tmp/base_start.png
+[4009747:4009747:1117/222955.100982:INFO:CONSOLE:1] "Scripts "build/three.js" and "build/three.min.js" are deprecated with r150+, and will be removed with r160. Please use ES Modules or alternatives: https://threejs.org/docs/index.html#manual/en/introduction/Installation", source: http://127.0.0.1:8731/vendor/three.min.js (1)
+-rw-r--r-- 1 root root 91212 Nov 17 22:30 /tmp/base_end.png
+[4009902:4009902:1117/223010.155807:INFO:CONSOLE:1] "Scripts "build/three.js" and "build/three.min.js" are deprecated with r150+, and will be removed with r160. Please use ES Modules or alternatives: https://threejs.org/docs/index.html#manual/en/introduction/Installation", source: http://127.0.0.1:8731/vendor/three.min.js (1)
+[0m
+[0m$ [0mcd /root/gta6-entry && ls -la /tmp/base_start.png /tmp/base_end.png; python3 -c "
+from PIL import Image
+for f in ['/tmp/base_start.png','/tmp/base_end.png']:
+    im=Image.open(f).convert('RGB'); print(f, im.size, im.getpixel((640,360)), len(set(im.getdata())))
+"
+-rw-r--r-- 1 root root 91212 Nov 17 22:30 /tmp/base_end.png
+-rw-r--r-- 1 root root 86357 Nov 17 22:30 /tmp/base_start.png
+/tmp/base_start.png (1280, 720) (82, 57, 37) 4201
+/tmp/base_end.png (1280, 720) (58, 68, 85) 5686
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && sed -n 90,260p hud.js
+let lastArmour = -1;
+  let lastWantedPips = -1;
+  let lastClockText = '';
+  let lastMoneyText = '';
+  let lastMoneyValue = -1;
+  let lastObjective = '';
+  let lastAmmoText = '';
+  let objectiveOverride = '';
+
+  function element(tag, css, parent) {
+    if (!doc) return null;
+    const node = doc.createElement(tag);
+    node.style.cssText = css;
+    (parent || root || doc.body).appendChild(node);
+    return node;
+  }
+
+  if (root) {
+    root.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:30;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eef1f5;user-select:none;';
+    if (doc.body) doc.body.appendChild(root);
+    else if (doc.addEventListener) doc.addEventListener('DOMContentLoaded', () => doc.body && doc.body.appendChild(root), { once: true });
+  }
+
+  const objectiveNode = element('div', 'position:absolute;top:18px;left:50%;transform:translateX(-50%);max-width:60vw;text-align:center;font-size:15px;letter-spacing:0.12em;text-transform:uppercase;color:#ffd76a;text-shadow:0 2px 6px rgba(0,0,0,0.85);', root);
+
+  const moneyNode = element('div', 'position:absolute;top:16px;right:20px;font-size:30px;font-weight:600;letter-spacing:0.03em;text-align:right;text-shadow:0 2px 6px rgba(0,0,0,0.9);', root);
+  const dollarNode = element('span', 'color:#63e07a;margin-right:5px;', moneyNode);
+  if (dollarNode) dollarNode.textContent = '$';
+  const cashNode = element('span', 'color:#eef4ea;', moneyNode);
+  const clockNode = element('div', 'font-size:14px;font-weight:400;letter-spacing:0.15em;color:#aab4c4;margin-top:2px;', moneyNode);
+
+  const wantedRow = element('div', 'position:absolute;top:74px;right:20px;font-size:24px;letter-spacing:4px;color:#8a8f99;text-align:right;text-shadow:0 2px 5px rgba(0,0,0,0.9);', root);
+  const stars = [];
+  for (let index = 0; index < STAR_COUNT; index += 1) {
+    const star = element('span', 'color:#4a4f5a;transition:color 120ms linear;', wantedRow);
+    if (star) star.textContent = '\u2605';
+    stars.push(star);
+  }
+  const wantedTag = element('div', 'font-size:11px;letter-spacing:0.24em;color:#8f98a8;margin-top:2px;', wantedRow);
+  if (wantedTag) wantedTag.textContent = 'WANTED';
+
+  const weaponBox = element('div', 'position:absolute;right:20px;bottom:22px;text-align:right;font-size:13px;letter-spacing:0.16em;color:#c6ceda;text-shadow:0 2px 6px rgba(0,0,0,0.9);', root);
+  const weaponIcon = element('div', 'position:relative;width:44px;height:20px;margin:0 0 6px auto;opacity:0.9;', weaponBox);
+  if (weaponIcon) {
+    weaponIcon.innerHTML = '<span style="position:absolute;right:0;top:3px;width:34px;height:9px;background:#dfe6f0;border-radius:1px;"></span>'
+      + '<span style="position:absolute;right:20px;top:12px;width:9px;height:8px;background:#c6ceda;transform:skewX(-16deg);"></span>'
+      + '<span style="position:absolute;right:26px;top:11px;width:5px;height:5px;background:#9aa4b2;"></span>';
+  }
+  const weaponName = element('div', 'font-size:15px;color:#e9eef7;letter-spacing:0.2em;', weaponBox);
+  if (weaponName) weaponName.textContent = 'PISTOL';
+  const ammoNode = element('div', 'font-size:30px;letter-spacing:0.04em;color:#ffe9b0;', weaponBox);
+  if (ammoNode) ammoNode.textContent = '36';
+
+  const mapHolder = element('div', 'position:absolute;left:20px;bottom:22px;width:' + MAP_SIZE + 'px;height:' + MAP_SIZE + 'px;', root);
+  const minimapCanvas = doc ? doc.createElement('canvas') : null;
+  if (minimapCanvas) {
+    const ratio = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    minimapCanvas.width = Math.round(MAP_SIZE * ratio);
+    minimapCanvas.height = Math.round(MAP_SIZE * ratio);
+    minimapCanvas.style.cssText = 'width:' + MAP_SIZE + 'px;height:' + MAP_SIZE + 'px;display:block;';
+    minimapCanvas.setAttribute('aria-hidden', 'true');
+    if (mapHolder) mapHolder.appendChild(minimapCanvas);
+  }
+  const mapContext = minimapCanvas ? minimapCanvas.getContext('2d') : null;
+
+  const bars = element('div', 'position:absolute;left:20px;bottom:' + (MAP_SIZE + 34) + 'px;width:' + MAP_SIZE + 'px;', root);
+  const healthTrack = element('div', 'position:relative;height:10px;background:rgba(10,14,20,0.72);border:1px solid rgba(255,255,255,0.12);border-radius:5px;overflow:hidden;margin-bottom:6px;', bars);
+  const healthFill = element('div', 'position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,#2f9e58,#63e07a);border-radius:4px;transition:width 120ms linear;', healthTrack);
+  const armourTrack = element('div', 'position:relative;height:8px;background:rgba(10,14,20,0.72);border:1px solid rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;', bars);
+  const armourFill = element('div', 'position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#3f7fd6,#8fc4ff);border-radius:3px;transition:width 120ms linear;', armourTrack);
+
+  const subtitleNode = element('div', 'position:absolute;left:50%;bottom:64px;transform:translateX(-50%);max-width:62vw;text-align:center;font-size:17px;line-height:1.4;color:#f4f1e6;background:rgba(8,11,16,0.55);padding:8px 16px;border-radius:3px;opacity:0;transition:opacity 160ms linear;text-shadow:0 1px 3px rgba(0,0,0,0.9);', root);
+
+  const crosshair = element('div', 'position:absolute;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%);opacity:0.85;', root);
+  if (crosshair) {
+    crosshair.innerHTML = '<span style="position:absolute;left:7px;top:0;width:2px;height:4px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,0.9);"></span>'
+      + '<span style="position:absolute;left:7px;bottom:0;width:2px;height:4px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,0.9);"></span>'
+      + '<span style="position:absolute;left:0;top:7px;width:4px;height:2px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,0.9);"></span>'
+      + '<span style="position:absolute;right:0;top:7px;width:4px;height:2px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,0.9);"></span>';
+  }
+  const hitMarker = element('div', 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;font-weight:700;color:#ff4a3d;opacity:0;text-shadow:0 0 6px rgba(0,0,0,0.85);', root);
+  if (hitMarker) hitMarker.textContent = '\u00d7';
+
+  const banner = element('div', 'position:absolute;left:0;right:0;top:38%;text-align:center;opacity:0;transition:opacity 220ms linear;', root);
+  const bannerTitle = element('div', 'font-size:54px;font-weight:800;letter-spacing:0.22em;color:#ffe9a8;text-shadow:0 2px 0 #22180a,0 8px 28px rgba(0,0,0,0.9);', banner);
+  const bannerSub = element('div', 'margin-top:10px;font-size:18px;letter-spacing:0.18em;color:#dfe6f0;text-shadow:0 2px 8px rgba(0,0,0,0.9);', banner);
+
+  function showBanner(title, sub, ms) {
+    if (bannerTitle) bannerTitle.textContent = title || '';
+    if (bannerSub) bannerSub.textContent = sub || '';
+    bannerTimer = Math.max(0.2, (ms || 2600) / 1000);
+    if (banner) banner.style.opacity = '1';
+    if (bannerTitle) {
+      bannerTitle.style.color = title === 'WASTED' ? '#ff6a5c' : title === 'BUSTED' ? '#8fc4ff' : '#ffe9a8';
+    }
+  }
+
+  function subtitle(text, ms) {
+    if (!subtitleNode) return;
+    subtitleNode.textContent = text || '';
+    subtitleNode.style.opacity = text ? '1' : '0';
+    subtitleTimer = text ? Math.max(0.4, (ms || 3000) / 1000) : 0;
+  }
+
+  function hitMarkerPulse(seconds) {
+    hitTimer = seconds || 0.16;
+    if (hitMarker) hitMarker.style.opacity = '1';
+  }
+
+  function setWanted(value) {
+    wanted = clamp(Math.round(Number(value) || 0), 0, STAR_COUNT);
+  }
+
+  function setWeapon(name, rounds) {
+    if (weaponName && name) weaponName.textContent = String(name).toUpperCase();
+    if (ammoNode && typeof rounds === 'number') setAmmo(rounds);
+  }
+
+  function setAmmo(rounds) {
+    if (!ammoNode) return;
+    const reserve = player && typeof player.ammoReserve === 'number' ? player.ammoReserve : null;
+    const text = String(Math.max(0, Math.round(rounds))) + (reserve === null ? '' : '/' + Math.max(0, Math.round(reserve)));
+    if (text !== lastAmmoText) {
+      lastAmmoText = text;
+      ammoNode.textContent = text;
+    }
+  }
+
+  /** Show or hide everything the HUD paints: the title screen wants the city, not the dashboard. */
+  function setVisible(visible) {
+    if (root) root.style.display = visible ? 'block' : 'none';
+  }
+
+  /** Put the clock at an exact time of day, for a staged scene; the game then advances it again. */
+  function setClock(minutes) {
+    clockMinutes = ((Number(minutes) || 0) % 1440 + 1440) % 1440;
+    lastClockText = '';
+    renderMoney();
+  }
+
+  const api = {
+    root,
+    minimapCanvas,
+    showBanner,
+    subtitle,
+    setWanted,
+    setWeapon,
+    setAmmo,
+    setClock,
+    setVisible,
+    hitMarker: hitMarkerPulse,
+    update,
+    get money() {
+      return moneyValue;
+    },
+    set money(value) {
+      moneyValue = Math.max(0, Math.round(Number(value) || 0));
+    },
+    get objective() {
+      return objectiveOverride;
+    },
+    set objective(value) {
+      objectiveOverride = typeof value === 'string' ? value : '';
+      lastObjective = null;
+    },
+  };
+
+  function currentObjectiveText() {
+    if (objectiveOverride) return objectiveOverride;
+    if (!missions) return '';
+    const current = missions.current;
+[0m
+Now I have the picture. Let me start with the renderer + atmosphere plumbing.
+[0m← [0mEdit game/src/render.js
+Index: /root/gta6-entry/game/src/render.js
+===================================================================
+--- /root/gta6-entry/game/src/render.js
++++ /root/gta6-entry/game/src/render.js
+@@ -9,8 +9,52 @@
+ export const SCREEN_PLAY = 'play';
+ export const SCREEN_PAUSED = 'paused';
+ export const SCREEN_OVER = 'over';
+ 
++/**
++ * The look of the city: filmic tone mapping, a warm exposure and sRGB output, plus soft shadow
++ * maps. Called once by main.js after the WebGLRenderer exists; three.js is read from the global
++ * UMD build the page loads, so nothing here imports it.
++ */
++export function configureRenderer(renderer, THREE) {
++  const library = THREE || (typeof globalThis !== 'undefined' ? globalThis.THREE : null);
++  if (!renderer || !library) return;
++  renderer.shadowMap.enabled = true;
++  renderer.shadowMap.type = library.PCFSoftShadowMap;
++  renderer.toneMapping = library.ACESFilmicToneMapping;
++  renderer.toneMappingExposure = 1.15;
++  if ('outputColorSpace' in renderer && library.SRGBColorSpace) renderer.outputColorSpace = library.SRGBColorSpace;
++}
++
++/** A late-dusk sky painted into a canvas: navy zenith, dusty rose band, amber at the horizon. */
++export function createSkyTexture(THREE, stops) {
++  const library = THREE || (typeof globalThis !== 'undefined' ? globalThis.THREE : null);
++  if (!library || typeof document === 'undefined') return null;
++  const canvas = document.createElement('canvas');
++  canvas.width = 8;
++  canvas.height = 512;
++  const context = canvas.getContext('2d');
++  if (!context) return null;
++  const gradient = context.createLinearGradient(0, 0, 0, 512);
++  const bands = stops || [
++    [0, '#101a33'],
++    [0.3, '#22304f'],
++    [0.52, '#4a4460'],
++    [0.66, '#8c6058'],
++    [0.76, '#d08a5c'],
++    [0.83, '#ffb26b'],
++    [0.9, '#ffd39a'],
++    [1, '#6b4c3c'],
++  ];
++  for (let index = 0; index < bands.length; index += 1) gradient.addColorStop(bands[index][0], bands[index][1]);
++  context.fillStyle = gradient;
++  context.fillRect(0, 0, 8, 512);
++  const texture = new library.CanvasTexture(canvas);
++  texture.colorSpace = library.SRGBColorSpace;
++  texture.needsUpdate = true;
++  return texture;
++}
++
+ /** The panel's width; its height grows with its lines: room for the title, the lines and the prompt. */
+ const PANEL = { width: 600, top: 134, line: 34, bottom: 70 };
+ const LIFE_SIZE = 20;
+ const LIFE_GAP = 8;
+
+[0m
+Now the biggest piece: world.js. Starting with texture helpers and the new sky/light rig.
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -25,8 +25,186 @@
+ const CAR_COLORS = [0x8b3232, 0x2f4f8b, 0xd6d6d2, 0x2f6b4f, 0x2b2b30, 0x9a7b32, 0x5b4a7a];
+ const WINDOW_LIGHT = [0xffd9a0, 0xffe6bf, 0xf7c879, 0xfff0d0, 0xdfe9ff, 0x9fc4e8];
+ const LEAVES = [0x2f5a3a, 0x2a5236, 0x376443, 0x305d3d, 0x284f33];
+ 
++/** Cheap seeded noise for the canvas textures, so two screenshot takes never differ. */
++function textureRandom(seed) {
++  let a = seed | 0;
++  return function random() {
++    a = (a + 0x6d2b79f5) | 0;
++    let t = Math.imul(a ^ (a >>> 15), 1 | a);
++    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
++    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
++  };
++}
++
++/** A repeating canvas texture. `paint(context, size)` fills it; nothing is fetched from disk. */
++function canvasTexture(THREE, size, repeatX, repeatY, paint, seed) {
++  if (typeof document === 'undefined') return null;
++  const canvas = document.createElement('canvas');
++  canvas.width = size;
++  canvas.height = size;
++  const context = canvas.getContext('2d');
++  if (!context) return null;
++  paint(context, size, textureRandom(seed === undefined ? 7 : seed));
++  const texture = new THREE.CanvasTexture(canvas);
++  texture.wrapS = THREE.RepeatWrapping;
++  texture.wrapT = THREE.RepeatWrapping;
++  texture.repeat.set(repeatX, repeatY);
++  texture.colorSpace = THREE.SRGBColorSpace;
++  texture.anisotropy = 4;
++  texture.needsUpdate = true;
++  return texture;
++}
++
++/** Asphalt: dark grain, a few pale flecks of aggregate and faint tar seams. */
++function makeAsphaltTexture(THREE) {
++  return canvasTexture(THREE, 256, 34, 34, (context, size, random) => {
++    context.fillStyle = '#2b2e35';
++    context.fillRect(0, 0, size, size);
++    for (let index = 0; index < 9000; index += 1) {
++      const shade = 34 + Math.floor(random() * 26);
++      context.fillStyle = 'rgba(' + shade + ',' + (shade + 2) + ',' + (shade + 5) + ',0.55)';
++      const x = random() * size;
++      const y = random() * size;
++      context.fillRect(x, y, 1 + random() * 2, 1 + random() * 2);
++    }
++    for (let index = 0; index < 420; index += 1) {
++      context.fillStyle = random() < 0.5 ? 'rgba(150,150,148,0.14)' : 'rgba(12,13,16,0.35)';
++      context.fillRect(random() * size, random() * size, 1, 1);
++    }
++    context.strokeStyle = 'rgba(12,14,17,0.5)';
++    context.lineWidth = 2;
++    for (let index = 0; index < 3; index += 1) {
++      context.beginPath();
++      context.moveTo(random() * size, 0);
++      context.bezierCurveTo(random() * size, size * 0.35, random() * size, size * 0.7, random() * size, size);
++      context.stroke();
++    }
++    const glow = context.createLinearGradient(0, size * 0.38, 0, size * 0.62);
++    glow.addColorStop(0, 'rgba(120,124,132,0)');
++    glow.addColorStop(0.5, 'rgba(120,124,132,0.09)');
++    glow.addColorStop(1, 'rgba(120,124,132,0)');
++    context.fillStyle = glow;
++    context.fillRect(0, size * 0.38, size, size * 0.24);
++  }, 11);
++}
++
++/** Concrete paving slabs with joint lines and a little speckle. */
++function makeSidewalkTexture(THREE) {
++  return canvasTexture(THREE, 256, 8, 8, (context, size, random) => {
++    context.fillStyle = '#8e8b83';
++    context.fillRect(0, 0, size, size);
++    for (let index = 0; index < 2600; index += 1) {
++      const shade = 118 + Math.floor(random() * 52);
++      context.fillStyle = 'rgba(' + shade + ',' + (shade - 4) + ',' + (shade - 12) + ',0.35)';
++      context.fillRect(random() * size, random() * size, 1 + random() * 2, 1 + random() * 2);
++    }
++    context.strokeStyle = 'rgba(58,56,52,0.55)';
++    context.lineWidth = 3;
++    for (let step = 0; step <= 4; step += 1) {
++      const at = (step * size) / 4;
++      context.beginPath();
++      context.moveTo(at, 0);
++      context.lineTo(at, size);
++      context.stroke();
++      context.beginPath();
++      context.moveTo(0, at);
++      context.lineTo(size, at);
++      context.stroke();
++    }
++    context.strokeStyle = 'rgba(190,186,178,0.25)';
++    context.lineWidth = 1;
++    for (let step = 0; step <= 4; step += 1) {
++      const at = (step * size) / 4 + 2;
++      context.beginPath();
++      context.moveTo(at, 0);
++      context.lineTo(at, size);
++      context.stroke();
++    }
++  }, 23);
++}
++
++/** Brick: staggered courses, warm mortar and per-brick colour jitter. */
++function makeBrickTexture(THREE) {
++  return canvasTexture(THREE, 256, 5, 7, (context, size, random) => {
++    context.fillStyle = '#6f655c';
++    context.fillRect(0, 0, size, size);
++    const rowHeight = 16;
++    const brickWidth = 32;
++    for (let row = 0; row * rowHeight < size; row += 1) {
++      const offset = row % 2 === 0 ? 0 : brickWidth / 2;
++      for (let col = -1; col * brickWidth < size + brickWidth; col += 1) {
++        const warm = 92 + Math.floor(random() * 46);
++        context.fillStyle = 'rgb(' + (warm + 20) + ',' + (warm - 12) + ',' + (warm - 28) + ')';
++        context.fillRect(col * brickWidth + offset + 2, row * rowHeight + 2, brickWidth - 3, rowHeight - 3);
++        context.fillStyle = 'rgba(255,240,220,0.05)';
++        context.fillRect(col * brickWidth + offset + 2, row * rowHeight + 2, brickWidth - 3, 2);
++      }
++    }
++  }, 31);
++}
++
++/** Curtain glass: deep blue panes between pale mullions, a few panes catching the sky. */
++function makeGlassTexture(THREE) {
++  return canvasTexture(THREE, 256, 6, 6, (context, size, random) => {
++    context.fillStyle = '#2c3f52';
++    context.fillRect(0, 0, size, size);
++    const cell = 32;
++    for (let y = 0; y < size; y += cell) {
++      for (let x = 0; x < size; x += cell) {
++        const lift = Math.floor(random() * 24);
++        context.fillStyle = 'rgba(' + (56 + lift) + ',' + (78 + lift) + ',' + (98 + lift) + ',0.9)';
++        context.fillRect(x + 2, y + 2, cell - 4, cell - 4);
++        if (random() < 0.14) {
++          context.fillStyle = 'rgba(255,196,130,0.5)';
++          context.fillRect(x + 3, y + 3, cell - 6, cell - 6);
++        }
++        context.fillStyle = 'rgba(200,220,240,0.16)';
++        context.fillRect(x + 2, y + 2, cell - 4, 3);
++      }
++    }
++    context.strokeStyle = 'rgba(170,182,196,0.55)';
++    context.lineWidth = 2;
++    for (let at = 0; at <= size; at += cell) {
++      context.beginPath();
++      context.moveTo(at, 0);
++      context.lineTo(at, size);
++      context.stroke();
++      context.beginPath();
++      context.moveTo(0, at);
++      context.lineTo(size, at);
++      context.stroke();
++    }
++  }, 43);
++}
++
++/** A neon shop sign: glowing canvas lettering, transparent everywhere else. */
++function makeNeonTexture(THREE, label, colour, size) {
++  if (typeof document === 'undefined') return null;
++  const canvas = document.createElement('canvas');
++  canvas.width = size || 512;
++  canvas.height = 128;
++  const context = canvas.getContext('2d');
++  if (!context) return null;
++  context.clearRect(0, 0, canvas.width, canvas.height);
++  context.font = '700 74px ui-monospace, Menlo, Consolas, monospace';
++  context.textAlign = 'center';
++  context.textBaseline = 'middle';
++  context.shadowColor = colour;
++  context.shadowBlur = 26;
++  context.fillStyle = colour;
++  context.fillText(label, canvas.width / 2, canvas.height / 2);
++  context.shadowBlur = 10;
++  context.fillStyle = '#fff8ee';
++  context.globalAlpha = 0.75;
++  context.fillText(label, canvas.width / 2, canvas.height / 2);
++  const texture = new THREE.CanvasTexture(canvas);
++  texture.colorSpace = THREE.SRGBColorSpace;
++  texture.needsUpdate = true;
++  return texture;
++}
++
+ /** mulberry32 again, only if a caller forgets the seeded generator: buildWorld must never call Math.random. */
+ function fallbackRandom(seed) {
+   let a = seed | 0;
+   return function random() {
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -324,51 +324,66 @@
+     max: { x: x + w / 2, y: height, z: z + d / 2 },
+   });
+ }
+ 
+-// Sky, fog and the light rig: a cool moon for the shadows, warm shop glow low down.
+-scene.background = new THREE.Color(0x0a0f19);
+-scene.fog = new THREE.Fog(0x101828, 190, 780);
+-scene.add(new THREE.HemisphereLight(0x46618c, 0x171a20, 0.75));
+-scene.add(new THREE.AmbientLight(0x76839a, 0.3));
+-const moon = new THREE.DirectionalLight(0xb9cdeb, 1.5);
+-moon.position.set(160, 220, 110);
+-moon.castShadow = true;
+-moon.shadow.mapSize.set(2048, 2048);
+-moon.shadow.camera.left = -300;
+-moon.shadow.camera.right = 300;
+-moon.shadow.camera.top = 300;
+-moon.shadow.camera.bottom = -300;
+-moon.shadow.camera.near = 1;
+-moon.shadow.camera.far = 760;
+-moon.shadow.bias = -0.0007;
+-scene.add(moon);
+-for (const [x, z] of [[0, -44], [0, 44], [88, 0], [-88, 0]]) {
+-  const lamp = new THREE.PointLight(0xffb266, 55, 40, 2);
+-  lamp.position.set(x, 6, z);
++// Dusk: a warm sun low over the water, a cool sky dome, and haze that swallows the far towers.
++scene.background = makeSkyColour(THREE);
++scene.fog = new THREE.FogExp2(0x1b2436, 0.0035);
++const hemi = new THREE.HemisphereLight(0x2b3a55, 0x1a1410, 0.55);
++scene.add(hemi);
++scene.add(new THREE.AmbientLight(0x3a3a44, 0.18));
++const sun = new THREE.DirectionalLight(0xffb26b, 2.2);
++// ~20 degrees above the horizon, back over the harbour so the streets get long shadows.
++const sunDistance = 420;
++const sunAngle = THREE.MathUtils.degToRad(20);
++sun.position.set(Math.cos(sunAngle) * sunDistance * 0.55, Math.sin(sunAngle) * sunDistance, Math.cos(sunAngle) * sunDistance);
++sun.castShadow = true;
++sun.shadow.mapSize.set(2048, 2048);
++sun.shadow.camera.left = -170;
++sun.shadow.camera.right = 170;
++sun.shadow.camera.top = 170;
++sun.shadow.camera.bottom = -170;
++sun.shadow.camera.near = 1;
++sun.shadow.camera.far = 900;
++sun.shadow.bias = -0.0006;
++sun.shadow.normalBias = 0.04;
++sun.target.position.set(0, 0, 40);
++scene.add(sun);
++scene.add(sun.target);
++// Two warm street lights near the staged corner, plus two further down the avenue.
++for (const [x, z, heat] of [[0, 64, 60], [0, 96, 55], [0, -40, 45], [0, 24, 40]]) {
++  const lamp = new THREE.PointLight(0xffb266, heat, 34, 2);
++  lamp.position.set(x, 5.4, z);
+   scene.add(lamp);
+ }
+ 
+ const starPositions = [];
+-for (let index = 0; index < 520; index += 1) starPositions.push(rand(-1000, 1000), rand(170, 560), rand(-1000, 1000));
++for (let index = 0; index < 380; index += 1) starPositions.push(rand(-1000, 1000), rand(230, 560), rand(-1000, 1000));
+ const starGeometry = new THREE.BufferGeometry();
+ starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+-scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xa9c2e2, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0.8, fog: false })));
++scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xa9c2e2, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0.6, fog: false })));
+ 
+-const asphalt = new THREE.MeshStandardMaterial({ color: 0x24262d, roughness: 0.95, metalness: 0.03 });
+-const concrete = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.86, metalness: 0.03 });
+-const kerbMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9da6, roughness: 0.82 });
++const asphaltMap = makeAsphaltTexture(THREE, 86, 86);
++const asphalt = new THREE.MeshStandardMaterial({ color: 0xffffff, map: asphaltMap, roughness: 0.88, metalness: 0.16 });
++const asphaltPlain = new THREE.MeshStandardMaterial({ color: 0x2a2d34, map: makeAsphaltTexture(THREE, 6, 24), roughness: 0.92, metalness: 0.05 });
++const concreteMap = makeSidewalkTexture(THREE, 1, 1);
++const concrete = new THREE.MeshStandardMaterial({ color: 0xffffff, map: concreteMap, roughness: 0.93, metalness: 0.02 });
++const kerbMaterial = new THREE.MeshStandardMaterial({ color: 0x9a9da6, roughness: 0.86 });
+ const paint = new THREE.MeshStandardMaterial({ color: 0xd7d6c8, roughness: 0.66 });
+ const metal = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.55 });
+ const glow = new THREE.MeshBasicMaterial({ color: 0xffffff });
+-const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x0a1724, roughness: 0.15, metalness: 0.9 });
++const waterMaterial = new THREE.MeshStandardMaterial({ color: 0x122a3d, roughness: 0.16, metalness: 0.92 });
++const brickMap = makeBrickTexture(THREE, 1, 1);
++const glassMap = makeGlassTexture(THREE, 1, 1);
++const brickWall = new THREE.MeshStandardMaterial({ color: 0xffffff, map: brickMap, roughness: 0.9, metalness: 0.02 });
++const glassWall = new THREE.MeshStandardMaterial({ color: 0xffffff, map: glassMap, roughness: 0.25, metalness: 0.65 });
+ 
+ const ground = new THREE.Mesh(new THREE.PlaneGeometry(CITY + 460, CITY + 140), asphalt);
+ ground.rotation.x = -Math.PI / 2;
+ ground.position.set(0, 0, -6);
+ ground.receiveShadow = true;
+ scene.add(ground);
+-const bedrock = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x0d1119, roughness: 1 }));
++const bedrock = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: 0x161a21, roughness: 1 }));
+ bedrock.rotation.x = -Math.PI / 2;
+ bedrock.position.set(0, -0.9, 0);
+ scene.add(bedrock);
+ 
+
+[0m
+Now the sky, lights and materials in `buildWorld`:
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -325,10 +325,12 @@
+   });
+ }
+ 
+ // Dusk: a warm sun low over the water, a cool sky dome, and haze that swallows the far towers.
+-scene.background = makeSkyColour(THREE);
++scene.background = new THREE.Color(0x25314a);
+ scene.fog = new THREE.FogExp2(0x1b2436, 0.0035);
++const skyDome = makeSkyDome(THREE);
++if (skyDome) scene.add(skyDome);
+ const hemi = new THREE.HemisphereLight(0x2b3a55, 0x1a1410, 0.55);
+ scene.add(hemi);
+ scene.add(new THREE.AmbientLight(0x3a3a44, 0.18));
+ const sun = new THREE.DirectionalLight(0xffb26b, 2.2);
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -25,8 +25,39 @@
+ const CAR_COLORS = [0x8b3232, 0x2f4f8b, 0xd6d6d2, 0x2f6b4f, 0x2b2b30, 0x9a7b32, 0x5b4a7a];
+ const WINDOW_LIGHT = [0xffd9a0, 0xffe6bf, 0xf7c879, 0xfff0d0, 0xdfe9ff, 0x9fc4e8];
+ const LEAVES = [0x2f5a3a, 0x2a5236, 0x376443, 0x305d3d, 0x284f33];
+ 
++/** The dusk dome: a big inverted sphere with a vertical gradient burning orange over the water. */
++function makeSkyDome(THREE) {
++  if (typeof document === 'undefined') return null;
++  const canvas = document.createElement('canvas');
++  canvas.width = 8;
++  canvas.height = 512;
++  const context = canvas.getContext('2d');
++  if (!context) return null;
++  const gradient = context.createLinearGradient(0, 0, 0, 512);
++  gradient.addColorStop(0, '#101a30');
++  gradient.addColorStop(0.26, '#1c2a44');
++  gradient.addColorStop(0.44, '#31405c');
++  gradient.addColorStop(0.58, '#5c5566');
++  gradient.addColorStop(0.68, '#9a6d5c');
++  gradient.addColorStop(0.76, '#d18b5c');
++  gradient.addColorStop(0.82, '#f2a968');
++  gradient.addColorStop(0.88, '#ffc286');
++  gradient.addColorStop(1, '#7d5a45');
++  context.fillStyle = gradient;
++  context.fillRect(0, 0, 8, 512);
++  const texture = new THREE.CanvasTexture(canvas);
++  texture.colorSpace = THREE.SRGBColorSpace;
++  texture.needsUpdate = true;
++  const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide, fog: false, depthWrite: false });
++  const dome = new THREE.Mesh(new THREE.SphereGeometry(1600, 24, 16), material);
++  dome.position.set(0, -120, 0);
++  dome.renderOrder = -10;
++  dome.frustumCulled = false;
++  return dome;
++}
++
+ /** Cheap seeded noise for the canvas textures, so two screenshot takes never differ. */
+ function textureRandom(seed) {
+   let a = seed | 0;
+   return function random() {
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -423,9 +423,10 @@
+ const slabItems = [];
+ const kerbItems = [];
+ const dashItems = [];
+ const crossingItems = [];
+-const buildingItems = [];
++const brickItems = [];
++const glassItems = [];
+ const windowItems = [];
+ const rooftopItems = [];
+ const tankItems = [];
+ const poleItems = [];
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -619,9 +619,11 @@
+ height = Math.min(60, Math.max(6, height));
+ const glass = chance(0.26 + downtown * 0.24);
+ const color = glass ? pick(GLASS) : pick(CONCRETE);
+ buildings.push({ x: lot.x, z: lot.z, w: lot.w, d: lot.d, height, color });
+-buildingItems.push({ x: lot.x, y: SIDEWALK_H + height / 2, z: lot.z, sx: lot.w, sy: height, sz: lot.d, color });
++// Glass towers get the curtain-wall texture, the rest get brick; instance colour tints it.
++const wallValues = glass ? glassItems : brickItems;
++wallValues.push({ x: lot.x, y: SIDEWALK_H + height / 2, z: lot.z, sx: lot.w, sy: height, sz: lot.d, color });
+ boxCollider(lot.x, lot.z, lot.w, lot.d, SIDEWALK_H + height);
+ 
+ // Emissive window strips on all four faces, a lit or unlit colour per window.
+ const rowStep = glass ? 2.9 : 3.3;
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -794,12 +794,13 @@
+ 
+ // Everything that repeated is one draw call from here on. The unit box is stretched by each
+ // instance's scale; poles and arms are pre-translated so their base sits at the placement point.
+ const unitBox = new THREE.BoxGeometry(1, 1, 1);
+-const slabs = instanced(unitBox, concrete, slabItems, false);
++const slabs = instanced(unitBox, new THREE.MeshStandardMaterial({ color: 0xffffff, map: makeSidewalkTexture(THREE, 3, 3), roughness: 0.94, metalness: 0.03 }), slabItems, false);
+ if (slabs) slabs.receiveShadow = true;
+ instanced(unitBox, kerbMaterial, kerbItems, false);
+-instanced(unitBox, concrete, buildingItems, true);
++instanced(unitBox, brickWall, brickItems, true);
++instanced(unitBox, glassWall, glassItems, true);
+ instanced(unitBox, glow, windowItems, false);
+ instanced(unitBox, concrete, rooftopItems, true);
+ instanced(unitBox, glow, farWindows, false);
+ instanced(unitBox, concrete, farTowers, true);
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -436,10 +436,12 @@
+ const trunkItems = [];
+ const leafItems = [];
+ const hydrantItems = [];
+ const hydrantTopItems = [];
++const binItems = [];
+ const benchItems = [];
+ const benchBackItems = [];
++const wetItems = [];
+ const carBodies = [];
+ const carCabins = [];
+ const carWheels = [];
+ const farTowers = [];
+
+[0m
+Now street props, neon signs, and brighter light pools in world.js:
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -23,8 +23,17 @@
+ const CONCRETE = [0x8d8c86, 0x9b9083, 0x7f7064, 0x69747d, 0x8d7c6b, 0xa19a8f, 0x5f6a73, 0x776e66];
+ const GLASS = [0x4f6070, 0x3f5364, 0x596773, 0x4a5a62];
+ const CAR_COLORS = [0x8b3232, 0x2f4f8b, 0xd6d6d2, 0x2f6b4f, 0x2b2b30, 0x9a7b32, 0x5b4a7a];
+ const WINDOW_LIGHT = [0xffd9a0, 0xffe6bf, 0xf7c879, 0xfff0d0, 0xdfe9ff, 0x9fc4e8];
++const WINDOW_WARM = [0xffb066, 0xff9a54, 0xffc47e, 0xff7f4a, 0xffa85e, 0xffd18a];
++const NEON = [
++  { label: 'HOTEL', colour: '#ff5f9e' },
++  { label: 'BAR', colour: '#54e0ff' },
++  { label: 'LIQUOR', colour: '#ffc94d' },
++  { label: 'NOODLES', colour: '#ff7a4a' },
++  { label: 'PAWN', colour: '#8dff8a' },
++  { label: 'MOTEL', colour: '#c48bff' },
++];
+ const LEAVES = [0x2f5a3a, 0x2a5236, 0x376443, 0x305d3d, 0x284f33];
+ 
+ /** The dusk dome: a big inverted sphere with a vertical gradient burning orange over the water. */
+ function makeSkyDome(THREE) {
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && grep -n "WINDOW_LIGHT\|windowColor" world.js
+26:const WINDOW_LIGHT = [0xffd9a0, 0xffe6bf, 0xf7c879, 0xfff0d0, 0xdfe9ff, 0x9fc4e8];
+652:            const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
+653:            windowItems.push({ x: lot.x + u, y, z: lot.z + lot.d / 2 + 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
+654:            windowItems.push({ x: lot.x + u, y, z: lot.z - lot.d / 2 - 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
+659:            const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
+660:            windowItems.push({ x: lot.x + lot.w / 2 + 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
+661:            windowItems.push({ x: lot.x - lot.w / 2 - 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
+789:          farWindows.push({ x: tx + offset, y, z: tz + faceZ * (d / 2 + 0.12), sx: 2.3, sy: 1.5, sz: 0.12, color: pick(WINDOW_LIGHT) });
+791:          farWindows.push({ x: tx + faceX * (w / 2 + 0.12), y, z: tz + offset, sx: 0.12, sy: 1.5, sz: 2.3, color: pick(WINDOW_LIGHT) });
+[0m
+[0m→ [0mRead game/src/world.js[90m [offset=640, limit=40][0m
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -648,16 +648,16 @@
+   const y = SIDEWALK_H + 2.9 + row * rowStep;
+   for (let col = 0; col < columnsX; col += 1) {
+     const u = -innerW / 2 + colStep / 2 + col * colStep;
+     const lit = chance(glass ? 0.82 : 0.66);
+-    const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
++    const windowColor = lit ? (chance(0.16) ? pick(WINDOW_WARM) : pick(WINDOW_LIGHT)) : 0x22272f;
+     windowItems.push({ x: lot.x + u, y, z: lot.z + lot.d / 2 + 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
+     windowItems.push({ x: lot.x + u, y, z: lot.z - lot.d / 2 - 0.06, sx: 1.3, sy: 0.8, sz: 0.12, color: windowColor });
+   }
+   for (let col = 0; col < columnsZ; col += 1) {
+     const u = -innerD / 2 + colStep / 2 + col * colStep;
+     const lit = chance(glass ? 0.82 : 0.66);
+-    const windowColor = lit ? pick(WINDOW_LIGHT) : 0x22272f;
++    const windowColor = lit ? (chance(0.16) ? pick(WINDOW_WARM) : pick(WINDOW_LIGHT)) : 0x22272f;
+     windowItems.push({ x: lot.x + lot.w / 2 + 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
+     windowItems.push({ x: lot.x - lot.w / 2 - 0.06, y, z: lot.z + u, sx: 0.12, sy: 0.8, sz: 1.3, color: windowColor });
+   }
+ }
+
+[0m
+[0m→ [0mRead game/src/world.js[90m [limit=60, offset=470][0m
+[0m→ [0mRead game/src/world.js[90m [limit=70, offset=526][0m
+[0m→ [0mRead game/src/world.js[90m [limit=95, offset=770][0m
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -818,15 +818,17 @@
+ instanced(new THREE.CylinderGeometry(1.15, 1.28, 2.4, 8), metal, tankItems, true);
+ instanced(new THREE.CylinderGeometry(0.11, 0.17, 4.6, 6).translate(0, 2.3, 0), metal, poleItems, true);
+ instanced(new THREE.BoxGeometry(1.7, 0.1, 0.1).translate(0.85, 0, 0), metal, armItems, false);
+ instanced(new THREE.SphereGeometry(0.2, 8, 6), glow, lampItems, false);
+-instanced(new THREE.CircleGeometry(3.1, 16), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
++const pools = instanced(new THREE.CircleGeometry(4.2, 20), new THREE.MeshBasicMaterial({ color: 0xffbe78, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }), poolItems, false);
++if (pools) pools.renderOrder = 2;
+ instanced(new THREE.CylinderGeometry(0.16, 0.26, 2.9, 6).translate(0, 1.45, 0), concrete, trunkItems, true);
+ instanced(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true }), leafItems, true);
+ instanced(unitBox, paint, dashItems, false);
+ instanced(unitBox, paint, crossingItems, false);
+ instanced(new THREE.CylinderGeometry(0.17, 0.21, 0.58, 8), concrete, hydrantItems, true);
+ instanced(new THREE.SphereGeometry(0.19, 8, 6), concrete, hydrantTopItems, false);
++instanced(new THREE.CylinderGeometry(0.4, 0.34, 0.92, 8).translate(0, 0.46, 0), new THREE.MeshStandardMaterial({ color: 0x2c3238, roughness: 0.8, metalness: 0.35 }), binItems, true);
+ instanced(new THREE.BoxGeometry(1.9, 0.14, 0.6).translate(0, 0.62, 0), concrete, benchItems, true);
+ instanced(new THREE.BoxGeometry(1.9, 0.5, 0.12).translate(0, 0.92, -0.26), concrete, benchBackItems, true);
+ 
+ const carParts = makeCarParts(THREE);
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -536,8 +536,19 @@
+   poleItems.push({ x: px, y: SIDEWALK_H, z: pz, color: 0x3d4249 });
+   armItems.push({ x: px, y: SIDEWALK_H + 4.5, z: pz, ry: Math.atan2(-dz, dx), color: 0x3d4249 });
+   lampItems.push({ x: px + dx * 1.5, y: SIDEWALK_H + 4.5, z: pz + dz * 1.5, color: 0xffd39a });
+   poolItems.push({ x: px + dx * 2.9, y: 0.035, z: pz + dz * 2.9, rx: -Math.PI / 2 });
++  // A wet specular smear running down the roadway from under each lamp head.
++  wetItems.push({
++    x: px + dx * 5.4,
++    y: 0.045,
++    z: pz + dz * 5.4,
++    rx: -Math.PI / 2,
++    ry: 0,
++    rz: Math.atan2(dx, dz),
++    sx: 1,
++    sy: 1,
++  });
+ }
+ 
+ if (chance(0.55)) {
+   const sx = chance(0.5) ? 1 : -1;
+
+[0m
+[0m→ [0mRead game/src/world.js[90m [limit=60, offset=690][0m
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -557,8 +557,20 @@
+   hydrantItems.push({ x: hx, y: SIDEWALK_H + 0.26, z: hz, color: 0xb03a2e });
+   hydrantTopItems.push({ x: hx, y: SIDEWALK_H + 0.55, z: hz, color: 0xc9463a });
+ }
+ 
++// Bins and the odd bench keep the kerb from reading as an empty grey strip.
++if (chance(0.7)) {
++  const side = chance(0.5) ? 1 : -1;
++  binItems.push({ x: bx + side * (edge - 1.9), y: SIDEWALK_H, z: bz + rand(-26, 26) });
++}
++if (chance(0.5)) {
++  const side = chance(0.5) ? 1 : -1;
++  const bz2 = bz + rand(-26, 26);
++  benchItems.push({ x: bx + side * (edge - 2.2), y: 0.62, z: bz2, ry: side > 0 ? -Math.PI / 2 : Math.PI / 2 });
++  benchBackItems.push({ x: bx + side * (edge - 2.2) + (side > 0 ? 0.26 : -0.26), y: 0.94, z: bz2, ry: side > 0 ? -Math.PI / 2 : Math.PI / 2 });
++}
++
+ for (const side of chance(0.5) ? [0, 1] : [2, 3]) {
+   for (let index = 0; index < 2; index += 1) {
+     const along = rand(-24, 24);
+     const inset = edge - 2.6;
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -827,8 +827,41 @@
+ }
+ 
+ // Everything that repeated is one draw call from here on. The unit box is stretched by each
+ // instance's scale; poles and arms are pre-translated so their base sits at the placement point.
++// Neon shop signs on the street-facing faces of the lots closest to the centre. Each is one
++// emissive plane with canvas lettering, plus a soft additive halo so it blooms at dusk.
++const neonSigns = [];
++for (let index = 0; index < buildings.length; index += 1) {
++  const building = buildings[index];
++  if (Math.hypot(building.x, building.z) > 190) continue;
++  if (building.height < 7) continue;
++  if (!chance(0.55)) continue;
++  const sign = pick(NEON);
++  const texture = makeNeonTexture(THREE, sign.label, sign.colour, 512);
++  if (!texture) continue;
++  const height = 3.2;
++  const width = height * 4;
++  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, fog: true });
++  const plane = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
++  const face = Math.floor(random() * 4);
++  const y = SIDEWALK_H + 3.4 + random() * 1.6;
++  if (face === 0) {
++    plane.position.set(building.x, y, building.z - building.d / 2 - 0.12);
++    plane.rotation.y = Math.PI;
++  } else if (face === 1) {
++    plane.position.set(building.x, y, building.z + building.d / 2 + 0.12);
++  } else if (face === 2) {
++    plane.position.set(building.x - building.w / 2 - 0.12, y, building.z);
++    plane.rotation.y = -Math.PI / 2;
++  } else {
++    plane.position.set(building.x + building.w / 2 + 0.12, y, building.z);
++    plane.rotation.y = Math.PI / 2;
++  }
++  scene.add(plane);
++  neonSigns.push(plane);
++}
++
+ const unitBox = new THREE.BoxGeometry(1, 1, 1);
+ const slabs = instanced(unitBox, new THREE.MeshStandardMaterial({ color: 0xffffff, map: makeSidewalkTexture(THREE, 3, 3), roughness: 0.94, metalness: 0.03 }), slabItems, false);
+ if (slabs) slabs.receiveShadow = true;
+ instanced(unitBox, kerbMaterial, kerbItems, false);
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -891,8 +891,17 @@
+ instanced(carParts.body, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0.35 }), carBodies, true);
+ instanced(carParts.cabin, new THREE.MeshStandardMaterial({ color: 0x1d2733, roughness: 0.15, metalness: 0.7 }), carCabins, true);
+ instanced(carParts.wheel, new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.9 }), carWheels, false);
+ 
++// Wet asphalt: a soft, stretched additive streak under each lamp, so the road catches the light.
++const wetStreaks = instanced(
++  new THREE.PlaneGeometry(2.6, 12),
++  new THREE.MeshBasicMaterial({ color: 0xffb878, transparent: true, opacity: 0.13, depthWrite: false, blending: THREE.AdditiveBlending }),
++  wetItems,
++  false,
++);
++if (wetStreaks) wetStreaks.renderOrder = 1;
++
+ // Two lane light pools alternating on the central avenue, the only lights that blink.
+ const blinkingPools = [];
+ for (let index = 0; index < 8; index += 1) {
+   const light = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ color: 0xffc06a, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending }));
+
+[0m
+Now player.js — jacket, jeans, pistol pose, camera:
+[0m← [0mEdit game/src/player.js
+Index: /root/gta6-entry/game/src/player.js
+===================================================================
+--- /root/gta6-entry/game/src/player.js
++++ /root/gta6-entry/game/src/player.js
+@@ -11,12 +11,15 @@
+ const CITY_LIMIT = 250;
+ const MOUSE_SENSITIVITY = 0.0022;
+ const PITCH_LIMIT = 1.05;
+ 
+-const SHIRT = 0x2d3b4d;
+-const TROUSERS = 0x1d2128;
++const SHIRT = 0x39404e;
++const JACKET = 0x232a35;
++const JACKET_TRIM = 0x141922;
++const TROUSERS = 0x2b3f63;
+ const SKIN = 0xc99a74;
+ const SHOE = 0x14161a;
++const HAIR = 0x17130f;
+ 
+ function getThree() {
+   const THREE = globalThis.THREE;
+   if (!THREE) throw new Error('player.js needs the global THREE from three.min.js');
+
+[0m
+[0m← [0mEdit game/src/player.js
+Index: /root/gta6-entry/game/src/player.js
+===================================================================
+--- /root/gta6-entry/game/src/player.js
++++ /root/gta6-entry/game/src/player.js
+@@ -69,32 +69,54 @@
+     }
+   }
+ }
+ 
+-/** The body: torso, head, two swinging legs, two arms and the pistol the right arm carries. */
++/** The body: jacket over a shirt, jeans, head with dark hair, and the pistol the right arm carries. */
+ function buildBody(THREE) {
+   const group = new THREE.Group();
+-  const shirtMaterial = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.86 });
++  const shirtMaterial = new THREE.MeshStandardMaterial({ color: SHIRT, roughness: 0.88 });
++  const jacketMaterial = new THREE.MeshStandardMaterial({ color: JACKET, roughness: 0.78, metalness: 0.05 });
++  const trimMaterial = new THREE.MeshStandardMaterial({ color: JACKET_TRIM, roughness: 0.7, metalness: 0.1 });
+   const trouserMaterial = new THREE.MeshStandardMaterial({ color: TROUSERS, roughness: 0.92 });
+   const skinMaterial = new THREE.MeshStandardMaterial({ color: SKIN, roughness: 0.84 });
+   const shoeMaterial = new THREE.MeshStandardMaterial({ color: SHOE, roughness: 0.95 });
+-  const gunMaterial = new THREE.MeshStandardMaterial({ color: 0x22262c, roughness: 0.36, metalness: 0.72 });
++  const hairMaterial = new THREE.MeshStandardMaterial({ color: HAIR, roughness: 1 });
++  const gunMaterial = new THREE.MeshStandardMaterial({ color: 0x22262c, roughness: 0.34, metalness: 0.78 });
+ 
+   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.66, 0.32), shirtMaterial);
+   torso.position.y = 1.2;
+   group.add(torso);
+ 
++  // The open jacket: two front panels and a collar over the shirt, plus a back slab.
++  const backPanel = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.68, 0.1), jacketMaterial);
++  backPanel.position.set(0, 1.21, -0.13);
++  group.add(backPanel);
++  for (const side of [-1, 1]) {
++    const front = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.66, 0.12), jacketMaterial);
++    front.position.set(side * 0.18, 1.2, 0.12);
++    group.add(front);
++    const shoulder = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.18, 0.36), jacketMaterial);
++    shoulder.position.set(side * 0.29, 1.46, 0);
++    group.add(shoulder);
++  }
++  const collar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.08, 0.32), trimMaterial);
++  collar.position.set(0, 1.53, 0);
++  group.add(collar);
++
+   const neck = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.16), skinMaterial);
+   neck.position.y = 1.55;
+   group.add(neck);
+ 
+   const head = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.3, 0.28), skinMaterial);
+   head.position.y = 1.7;
+   group.add(head);
+ 
+-  const hair = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.3), new THREE.MeshStandardMaterial({ color: 0x1a1712, roughness: 1 }));
++  const hair = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.3), hairMaterial);
+   hair.position.y = 1.86;
+   group.add(hair);
++  const fringe = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.09, 0.06), hairMaterial);
++  fringe.position.set(0, 1.79, 0.14);
++  group.add(fringe);
+ 
+   const legs = [];
+   for (const side of [-1, 1]) {
+     const legGroup = new THREE.Group();
+@@ -112,11 +134,14 @@
+   const arms = [];
+   for (const side of [-1, 1]) {
+     const armGroup = new THREE.Group();
+     armGroup.position.set(side * 0.35, 1.46, 0);
+-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.6, 0.17), shirtMaterial);
++    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.6, 0.18), jacketMaterial);
+     arm.position.y = -0.29;
+     armGroup.add(arm);
++    const cuff = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.19), trimMaterial);
++    cuff.position.y = -0.56;
++    armGroup.add(cuff);
+     const hand = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.13, 0.15), skinMaterial);
+     hand.position.y = -0.62;
+     armGroup.add(hand);
+     group.add(armGroup);
+@@ -126,12 +151,18 @@
+   const pistol = new THREE.Group();
+   const slide = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.32), gunMaterial);
+   slide.position.z = 0.12;
+   pistol.add(slide);
++  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.1), gunMaterial);
++  barrel.position.set(0, 0.005, 0.3);
++  pistol.add(barrel);
+   const grip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.18, 0.09), gunMaterial);
+   grip.position.set(0, -0.12, -0.02);
+   pistol.add(grip);
+-  pistol.position.set(0, -0.64, 0.14);
++  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.08), gunMaterial);
++  guard.position.set(0, -0.07, 0.06);
++  pistol.add(guard);
++  pistol.position.set(0, -0.66, 0.16);
+   arms[1].add(pistol);
+ 
+   group.traverse((child) => {
+     if (child.isMesh) {
+
+[0m
+[0m← [0mEdit game/src/player.js
+Index: /root/gta6-entry/game/src/player.js
+===================================================================
+--- /root/gta6-entry/game/src/player.js
++++ /root/gta6-entry/game/src/player.js
+@@ -240,22 +240,43 @@
+   if (!camera) return;
+   const forwardX = Math.sin(player.yaw);
+   const forwardZ = Math.cos(player.yaw);
+   const horizontal = 4.5;
+-  const height = 2.15 + player.pitch * 2.2;
++  // Eye height 1.6 m plus 1.2 m of lift reads over the player's shoulder into the receding city.
++  const height = 2.8 + player.pitch * 1.6;
+   camera.position.set(
+     group.position.x - forwardX * horizontal,
+     group.position.y + height,
+     group.position.z - forwardZ * horizontal,
+   );
+-  const aimHeight = 1.35 + player.pitch * 4.2;
++  const aimHeight = 1.35 + player.pitch * 3.4;
+   camera.lookAt(
+-    group.position.x + forwardX * 8,
++    group.position.x + forwardX * 9,
+     group.position.y + aimHeight,
+-    group.position.z + forwardZ * 8,
++    group.position.z + forwardZ * 9,
+   );
+ }
+ 
++/** A staged pose for screenshots: 'run' leans forward with opposite arm and leg swings. */
++function setPose(kind) {
++  if (kind === 'run') {
++    body.legs[0].rotation.x = 0.62;
++    body.legs[1].rotation.x = -0.52;
++    body.legs[0].rotation.z = 0.03;
++    body.legs[1].rotation.z = -0.03;
++    body.arms[0].rotation.x = -0.72;
++    body.arms[1].rotation.x = -1.34;
++    body.arms[1].rotation.z = -0.12;
++    group.rotation.z = 0.03;
++  } else {
++    body.legs[0].rotation.x = 0;
++    body.legs[1].rotation.x = 0;
++    body.arms[0].rotation.x = 0;
++    if (!player.pistolOut) body.arms[1].rotation.x = 0;
++    group.rotation.z = 0;
++  }
++}
++
+ function update(dt) {
+   if (player.controlsEnabled) {
+     const forwardX = Math.sin(player.yaw);
+     const forwardZ = Math.cos(player.yaw);
+
+[0m
+[0m← [0mEdit game/src/player.js
+Index: /root/gta6-entry/game/src/player.js
+===================================================================
+--- /root/gta6-entry/game/src/player.js
++++ /root/gta6-entry/game/src/player.js
+@@ -360,8 +360,9 @@
+ position: group.position,
+ radius: BODY_RADIUS,
+ height: 1.8,
+ setPistolOut,
++setPose,
+ place,
+ setVisible,
+ setControlsEnabled,
+ update,
+
+[0m
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -92,9 +92,9 @@
+   });
+   return { group, legs: [limbs[0], limbs[2]], arms: [limbs[1], limbs[3]] };
+ }
+ 
+-/** A burning wreck: a dark car, a fire sprite and a column of smoke rising from the bonnet. */
++/** A burning wreck: a dark car, a fire sprite, smoke puffs and a scorched halo on the road. */
+ export function makeWreck(scene, x, z, yaw) {
+   const THREE = getThree();
+   const group = makeCar(0x2a2c30, 'sedan');
+   group.position.set(x, 0, z);
+@@ -103,27 +103,35 @@
+   group.userData.body.rotation.z = 0.06;
+   group.scale.set(1, 0.92, 1);
+   scene.add(group);
+ 
+-  const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
++  const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xff8a2a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+   const flames = [];
+-  for (let index = 0; index < 5; index += 1) {
+-    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 5), fireMaterial.clone());
+-    flame.position.set((index - 2) * 0.22, 0.9, 0.4 + (index % 2) * 0.3);
++  for (let index = 0; index < 7; index += 1) {
++    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.3 + (index % 3) * 0.06, 1.2 + (index % 2) * 0.5, 5), fireMaterial.clone());
++    flame.material.color.setHex(index % 2 === 0 ? 0xff9a30 : 0xffd06a);
++    flame.position.set((index - 3) * 0.2, 0.95, 0.4 + (index % 2) * 0.3);
+     flame.rotation.x = Math.PI;
+     group.add(flame);
+     flames.push(flame);
+   }
+   const smokeMaterial = new THREE.MeshBasicMaterial({ color: 0x2c2c30, transparent: true, opacity: 0.45, depthWrite: false });
+   const puffs = [];
+-  for (let index = 0; index < 7; index += 1) {
+-    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.55 + index * 0.1, 6, 5), smokeMaterial.clone());
+-    puff.position.set((index % 3 - 1) * 0.4, 1.6 + index * 0.7, 0.2);
++  for (let index = 0; index < 9; index += 1) {
++    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.6 + index * 0.12, 6, 5), smokeMaterial.clone());
++    puff.position.set((index % 3 - 1) * 0.4, 1.8 + index * 0.8, 0.2);
+     group.add(puff);
+     puffs.push(puff);
+   }
+-  const light = new THREE.PointLight(0xff7a24, 22, 16, 2);
+-  light.position.set(x, 1.4, z);
++  const halo = new THREE.Mesh(
++    new THREE.CircleGeometry(3.4, 20),
++    new THREE.MeshBasicMaterial({ color: 0xff7a24, transparent: true, opacity: 0.24, depthWrite: false, blending: THREE.AdditiveBlending }),
++  );
++  halo.rotation.x = -Math.PI / 2;
++  halo.position.y = 0.05;
++  group.add(halo);
++  const light = new THREE.PointLight(0xff7a24, 26, 18, 2);
++  light.position.set(x, 1.6, z);
+   scene.add(light);
+ 
+   let time = 0;
+   const wreck = {
+@@ -142,20 +150,43 @@
+         flame.material.opacity = 0.55 + 0.35 * flicker;
+       }
+       for (let index = 0; index < puffs.length; index += 1) {
+         const puff = puffs[index];
+-        const drift = (time * 0.7 + index * 0.45) % 4;
+-        puff.position.y = 1.6 + drift;
+-        puff.position.x = Math.sin(time * 0.9 + index) * 0.5;
+-        puff.material.opacity = Math.max(0, 0.5 - drift * 0.11);
+-        puff.scale.setScalar(1 + drift * 0.35);
++        const drift = (time * 0.55 + index * 0.42) % 5;
++        puff.position.y = 1.8 + drift;
++        puff.position.x = Math.sin(time * 0.9 + index) * 0.6;
++        puff.material.opacity = Math.max(0, 0.42 - drift * 0.075);
++        puff.scale.setScalar(1 + drift * 0.42);
+       }
+-      light.intensity = 16 + 10 * (0.5 + 0.5 * Math.sin(time * 11.3));
++      light.intensity = 20 + 12 * (0.5 + 0.5 * Math.sin(time * 11.3));
++      halo.material.opacity = 0.18 + 0.1 * (0.5 + 0.5 * Math.sin(time * 6.2));
+     },
+   };
+   return wreck;
+ }
+ 
++/** The white-and-black cruiser livery: white body, black doors and roof, chrome bumpers. */
++function dressAsPolice(THREE, group) {
++  const white = new THREE.MeshStandardMaterial({ color: 0xe8e6e0, roughness: 0.42, metalness: 0.28 });
++  const black = new THREE.MeshStandardMaterial({ color: 0x0d1016, roughness: 0.55, metalness: 0.22 });
++  group.userData.body.material = white;
++  const length = group.userData.length || 4.35;
++  for (const side of [-1, 1]) {
++    const door = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.52, 1.9), black);
++    door.position.set(side * 0.94, 0.66, 0.1);
++    group.add(door);
++    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.14, 4.1), black);
++    stripe.position.set(side * 0.94, 0.94, 0);
++    group.add(stripe);
++  }
++  const roof = new THREE.Mesh(new THREE.BoxGeometry(1.54, 0.1, 1.7), black);
++  roof.position.set(0, 1.56, -0.25);
++  group.add(roof);
++  const pushBar = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 0.16), black);
++  pushBar.position.set(0, 0.5, length / 2 + 0.14);
++  group.add(pushBar);
++}
++
+ export function createPolice(scene, camera, player, world, vehicles, peds, combat, audio, rng) {
+   const THREE = getThree();
+   const random = typeof rng === 'function' ? rng : fallbackRandom(0xc0b5);
+   const units = [];
+
+[0m
+Now police.js — police sedan, alternating bar, spotlight, better wreck:
+Now the police unit with light bar, spotlight cone and blinking timer:
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -262,21 +262,31 @@
+ 
+ function spawnUnit(x, z, yaw) {
+   if (units.length >= MAX_UNITS) return null;
+   const group = makeCar(0x101820, 'sedan');
+-  if (group.userData.body && group.userData.body.material) {
+-    group.userData.body.material = new THREE.MeshStandardMaterial({ color: 0x0f1a2c, roughness: 0.5, metalness: 0.4 });
+-  }
++  dressAsPolice(THREE, group);
+   const at = typeof x === 'number' && typeof z === 'number' ? { x, z } : playerPoint();
+   const heading = typeof yaw === 'number' ? yaw : Math.atan2(at.x - playerPoint().x, at.z - playerPoint().z) + Math.PI;
+   group.position.set(at.x, 0, at.z);
+   group.rotation.y = heading;
+-  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.14, 0.24), new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff2a1a, emissiveIntensity: 2.4, roughness: 0.4 }));
+-  bar.position.set(0, 1.66, 0.1);
+-  group.add(bar);
+-  const barBlue = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.14, 0.24), new THREE.MeshStandardMaterial({ color: 0x0d1a3a, emissive: 0x2a6aff, emissiveIntensity: 2.4, roughness: 0.4 }));
+-  barBlue.position.set(0, 1.66, -0.16);
++  // Light bar: two emissive halves side by side on the roof, red left, blue right.
++  const barRed = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x3a0d0d, emissive: 0xff2a1a, emissiveIntensity: 3.2, roughness: 0.35 }));
++  barRed.position.set(-0.24, 1.68, -0.1);
++  group.add(barRed);
++  const barBlue = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.16, 0.26), new THREE.MeshStandardMaterial({ color: 0x0d1a3a, emissive: 0x2a6aff, emissiveIntensity: 0.5, roughness: 0.35 }));
++  barBlue.position.set(0.24, 1.68, -0.1);
+   group.add(barBlue);
++  const barBase = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.06, 0.3), new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.7 }));
++  barBase.position.set(0, 1.6, -0.1);
++  group.add(barBase);
++  // The spotlight: a translucent cone from the bar to the road ahead.
++  const spot = new THREE.Mesh(
++    new THREE.ConeGeometry(2.6, 13, 16, 1, true),
++    new THREE.MeshBasicMaterial({ color: 0xdfe9ff, transparent: true, opacity: 0.09, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }),
++  );
++  spot.rotation.x = -Math.PI / 2;
++  spot.position.set(0, 3.2, 6.6);
++  group.add(spot);
+   scene.add(group);
+   const unit = {
+     group,
+     mesh: group,
+@@ -290,9 +300,10 @@
+     dead: false,
+     alive: true,
+     radius: 1.6,
+     height: 1.7,
+-    lights: [bar, barBlue],
++    lights: [barRed, barBlue],
++    spotlight: spot,
+     flash: 0,
+   };
+   units.push(unit);
+   return unit;
+
+[0m
+[0m← [0mEdit game/src/police.js
+Index: /root/gta6-entry/game/src/police.js
+===================================================================
+--- /root/gta6-entry/game/src/police.js
++++ /root/gta6-entry/game/src/police.js
+@@ -360,12 +360,13 @@
+ const wrecks = [];
+ 
+ function updateUnit(unit, dt) {
+   if (!unit.group) return;
+-  unit.flash += dt * 6;
+-  const lit = Math.sin(unit.flash) > 0;
+-  if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 3.4 : 0.7;
+-  if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.7 : 3.4;
++  unit.flash += dt;
++  const lit = Math.sin(unit.flash * 3.4) > 0;
++  if (unit.lights[0]) unit.lights[0].material.emissiveIntensity = lit ? 4.2 : 0.3;
++  if (unit.lights[1]) unit.lights[1].material.emissiveIntensity = lit ? 0.3 : 4.2;
++  if (unit.spotlight) unit.spotlight.material.opacity = 0.06 + 0.05 * (0.5 + 0.5 * Math.sin(unit.flash * 2.1));
+ 
+   if (unit.spawned && cops.length < Math.min(2, wanted)) {
+     if (Math.hypot(unit.x - playerPoint().x, unit.z - playerPoint().z) < 40) {
+       for (let index = 0; index < 2; index += 1) {
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -653,11 +653,13 @@
+ height = Math.min(60, Math.max(6, height));
+ const glass = chance(0.26 + downtown * 0.24);
+ const color = glass ? pick(GLASS) : pick(CONCRETE);
+ buildings.push({ x: lot.x, z: lot.z, w: lot.w, d: lot.d, height, color });
+-// Glass towers get the curtain-wall texture, the rest get brick; instance colour tints it.
++// Glass towers get the curtain-wall texture, the rest get brick; the instance colour is
++// lightened so the texture detail survives instead of multiplying down to mud.
+ const wallValues = glass ? glassItems : brickItems;
+-wallValues.push({ x: lot.x, y: SIDEWALK_H + height / 2, z: lot.z, sx: lot.w, sy: height, sz: lot.d, color });
++tint.set(color).lerp(WHITE, glass ? 0.55 : 0.62);
++wallValues.push({ x: lot.x, y: SIDEWALK_H + height / 2, z: lot.z, sx: lot.w, sy: height, sz: lot.d, color: tint.getHex() });
+ boxCollider(lot.x, lot.z, lot.w, lot.d, SIDEWALK_H + height);
+ 
+ // Emissive window strips on all four faces, a lit or unlit colour per window.
+ const rowStep = glass ? 2.9 : 3.3;
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -334,8 +334,9 @@
+ const sidewalks = [];
+ const buildings = [];
+ const dummy = new THREE.Object3D();
+ const tint = new THREE.Color();
++const WHITE = new THREE.Color(0xffffff);
+ 
+ /** Add one InstancedMesh for a list of { x, y, z, sx, sy, sz, rx, ry, rz, color } placements. */
+ function instanced(geometry, material, items, shadows) {
+   if (items.length === 0) return null;
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game && for f in src/world.js src/player.js src/police.js src/render.js; do node --check $f || echo "FAIL $f"; done
+(no output)
+[0m
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -17,8 +17,9 @@
+ import { createHud } from './hud.js';
+ import { createUi } from './ui.js';
+ import { createAudio } from './audio.js';
+ import { readShotParams, applyShot } from './shots.js';
++import { configureRenderer } from './render.js';
+ import { createInput, ACTION_CONFIRM, ACTION_PAUSE } from './input.js';
+ 
+ const MAX_FRAME = 0.25;
+ const DEFAULT_SEED = 1;
+
+[0m
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -101,10 +101,9 @@
+ 
+ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+ renderer.setSize(window.innerWidth, window.innerHeight, false);
+-renderer.shadowMap.enabled = true;
+-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
++configureRenderer(renderer, THREE);
+ 
+ const scene = new THREE.Scene();
+ const camera = new THREE.PerspectiveCamera(62, Math.max(1, window.innerWidth) / Math.max(1, window.innerHeight), 0.1, 2200);
+ camera.position.set(0, 26, 120);
+
+[0m
+Now the shot staging. I'll rewrite `shots.js` while keeping its exports and flowers.
+[0m← [0mWrite game/src/shots.js
+Wrote file successfully.
+[0m
+[0m$ [0mcd /root/gta6-entry/game && for f in src/*.js; do node --check $f || echo "FAIL $f"; done; echo checked
+checked
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t1_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/t1.log; ls -la /tmp/t1_play.png; grep -i "uncaught\|CONSOLE.*error\|Uncaught" /tmp/t1.log | head
+-rw-r--r-- 1 root root 182145 Nov 17 22:40 /tmp/t1_play.png
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t1_play.png').convert('RGB')
+w,h=im.size
+for name,box in [('top',(0,0,w,h//3)),('mid',(0,h//3,w,2*h//3)),('bot',(0,2*h//3,w,h)),('center',(w//3,h//3,2*w//3,2*h//3))]:
+    r=im.crop(box).resize((32,18))
+    px=list(r.getdata())
+    print(name, [round(sum(p[i] for p in px)/len(px)) for i in range(3)])
+"
+top [34, 34, 40]
+mid [28, 22, 17]
+bot [12, 12, 15]
+center [42, 31, 24]
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t1_play.png').convert('RGB')
+w,h=im.size
+r=im.resize((48,27))
+chars=' .:-=+*#%@'
+px=list(r.getdata())
+for y in range(27):
+    line=''
+    for x in range(48):
+        p=px[y*48+x]; v=(p[0]+p[1]+p[2])/3
+        line+=chars[min(9,int(v/26))]
+    print(line)
+"
+:.         :::::::::::::::::........         .. 
+:.         ......::::::::::::.......  : : -..-=.
+:.           . . .::::::::.::::..::.            
+:.                .::::::::::: .::..  : : ::::.:
+      ...::::::....:-::::-:::. ::.:.            
+.        .........:.:-----:::: .:.:.  .      :  
+:...  ...:::..:-..::.::---. :: ::.     ..       
+   .  ... :.:::::.:::.:---: .. .     ....  : : :
+      . ..........:...:---: :                  =
+  .   ...:::::::..::...:::. .        ..    .  ..
+                 .:. .....                      
+              ..-:..:..... ....                 
+           .::===---::...            .:.        
+           ...::-=+-::-.  .::  .:. ...:::.      
+            ....==-. :-..  ::.  :::  .:::.....  
+ :-:.     ..                                 ...
+  ...  ...                                      
+  :::::.                                        
+ .::::.                                         
+.::::..                                         
+:::::::                                       - 
+ .:.::.                                      .. 
+   :.                             :=.       ... 
+                                   --
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -43,17 +43,21 @@
+ canvas.height = 512;
+ const context = canvas.getContext('2d');
+ if (!context) return null;
+ const gradient = context.createLinearGradient(0, 0, 0, 512);
+-gradient.addColorStop(0, '#101a30');
+-gradient.addColorStop(0.26, '#1c2a44');
+-gradient.addColorStop(0.44, '#31405c');
+-gradient.addColorStop(0.58, '#5c5566');
+-gradient.addColorStop(0.68, '#9a6d5c');
+-gradient.addColorStop(0.76, '#d18b5c');
+-gradient.addColorStop(0.82, '#f2a968');
+-gradient.addColorStop(0.88, '#ffc286');
+-gradient.addColorStop(1, '#7d5a45');
++// The sphere maps v=0 at the bottom pole and v=1 at the top, so the horizon sits at v~0.5:
++// warm bands must be just above that to burn behind the skyline.
++gradient.addColorStop(0.0, '#1a1620');
++gradient.addColorStop(0.42, '#4a3a3e');
++gradient.addColorStop(0.47, '#b5714f');
++gradient.addColorStop(0.5, '#ffb877');
++gradient.addColorStop(0.53, '#f7a167');
++gradient.addColorStop(0.58, '#c4785c');
++gradient.addColorStop(0.64, '#8a5f66');
++gradient.addColorStop(0.72, '#4d4763');
++gradient.addColorStop(0.82, '#2b3550');
++gradient.addColorStop(0.92, '#182238');
++gradient.addColorStop(1.0, '#101828');
+ context.fillStyle = gradient;
+ context.fillRect(0, 0, 8, 512);
+ const texture = new THREE.CanvasTexture(canvas);
+ texture.colorSpace = THREE.SRGBColorSpace;
+
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t2_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/t2.log; ls -la /tmp/t2_play.png; python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t2_play.png').convert('RGB')
+w,h=im.size
+for name,box in [('top',(0,0,w,h//4)),('mid',(0,h//3,w,2*h//3)),('bot',(0,3*h//4,w,h))]:
+    r=im.crop(box).resize((32,18)); px=list(r.getdata())
+    print(name, [round(sum(p[i] for p in px)/len(px)) for i in range(3)])
+"
+-rw-r--r-- 1 root root 183261 Nov 17 22:41 /tmp/t2_play.png
+top [46, 36, 34]
+mid [28, 22, 17]
+bot [12, 13, 17]
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t2_play.png').convert('RGB')
+w,h=im.size
+r=im.resize((32,18))
+px=list(r.getdata())
+for y in range(18):
+    row=[]
+    for x in range(32):
+        p=px[y*32+x]
+        row.append('%02x%02x%02x'%p)
+    print(' '.join(row))
+EOF
+3e2c31 0b090b 030405 040506 020304 040506 040406 2e2529 41353b 3f3439 3e3339 4c3c43 524047 584645 5d4a45 544240 483634 493632 483533 3d2b31 3d2b32 402b2d 4d2412 4e210b 0e0602 131211 120e0a 120e0b 1b2a20 1b1f1e 383b39 262828
+463136 161416 0d0f10 10100e 050607 0e0e0e 0b0d0e 131416 161718 17191b 181a1b 262225 513f45 554247 544147 544248 4e3b40 402d32 402e32 3f2d34 422c2f 502715 5a2e16 4a2410 0a0402 171716 17120e 15120f 20271e 1e1d15 2a2c2b 1f2122
+2e1f22 171214 050606 040302 0e0c09 0e0c09 201b17 201f1f 202123 222122 171719 18191b 342c31 58434a 564249 554249 564349 48353b 422e35 422a29 301a11 5f351f 5e3723 47210f 080301 1a1c1e 191b1c 16191b 2b281c 372e14 262520 1f2020
+0e0e0e 090807 040403 0b0a07 262219 29251e 39312b 363331 323437 363738 282726 282729 2d2d31 3d3136 634a4d 5f484c 5e484d 594247 4f3434 522e1a 28150b 653a22 552d1a 492718 060301 20140b 030405 010304 000002 000104 1f1f1b 000204
+1c1d1e 1d1a15 191713 060605 22201a 222221 2c2d2f 363533 2c2c2c 343638 47423c 262526 353539 343334 473d44 7f5a54 98665a 5b433e 2c1f1c 4d2f1e 23140b 462d1f 231610 0e0908 030303 151616 342e24 080808 0b0a09 151410 181714 15150f
+000002 0b0c0c 141516 030303 212120 212122 272625 363532 363432 333334 343230 252424 333336 313232 232930 9f735f d9936e 6f5143 231b17 2d211a 070708 131311 030406 020102 050505 161819 0d0a07 020203 0e0f0e 131311 0f0e0c 4d4748
+000001 141311 040404 020202 161514 1a1917 2b2925 2b2927 2b2a2b 29292a 272522 1e1e1d 363536 232425 242427 4e3e37 604b3f 322925 1d1310 1b120e 030203 070606 030304 030202 060606 141514 000000 000101 0d1011 090c0d 020304 22201f
+010101 000000 020201 040303 010100 000000 0d0d0f 151516 161415 201b1a 3a2d24 523c2b 473023 342823 2d2626 2d221c 32271f 271b12 24170e 302317 211911 0e0a07 010000 010000 040201 050200 000001 000001 000000 010000 020201 000000
+080503 080402 090403 0b0704 0b0704 0b0704 0e0907 221d1a 362e27 6a543e 8d6b4c 8d6448 915c3f 654a3b 554438 382921 231813 1c0e06 25160b 110b07 17110b 281d13 0a0704 121111 1c1815 423327 3e2816 23160c 060302 040202 040302 050302
+040905 08130a 09140b 040604 030202 000000 000000 160f0b 382920 372a23 4f3f32 9b744e 846141 2c2421 654a34 5c381f 301204 1c1109 724a27 472d17 0c0704 52351d 5b3b20 23180f 150f0a 47301c 5b3c23 3e2919 2d1c10 2a1a0e 1d120a 0e0805
+0e1e20 244645 1f382b 090e0c 040406 170e08 2f1d10 27170d 0e0906 0a0a0b 151313 191515 131213 111011 0f0d0c 0a0401 0e0602 030100 050200 080402 020000 000000 060301 060301 000000 030100 040201 020100 020100 0e0804 20140b 301e10
+020102 23242b 353943 33353b 362417 2c1a0e 0c0704 000000 000000 000000 010001 040202 040303 030101 020000 050201 060301 030100 020100 030100 030100 020100 020000 020000 020000 020000 010000 010000 010000 000000 000000 000000
+151517 373c44 43474e 30343b 202124 000000 000000 010000 010000 010000 020000 020000 020000 030100 030100 030201 080504 040100 040100 040100 040100 040100 040100 030100 040100 040100 030100 030100 030100 020000 010000 020000
+473830 424852 3c414a 363c46 23272d 000000 020000 020000 020000 030100 030100 030100 030100 030100 030000 030000 070403 030000 040100 050200 050100 050200 040100 000000 030100 050200 040100 040100 040100 030101 1e1d1e 212021
+130d0a 2b2f36 34393a 2b3036 101012 010000 030100 030100 030100 030100 030100 030100 040000 090606 0f0d0c 0e0c0b 110f0e 12100f 0a0806 050100 060200 050100 0e0702 382513 0c0602 050100 060200 060200 050100 1d1711 322c24 1f1b15
+010204 040306 151514 070608 030204 040405 050405 040405 050405 050405 050405 050405 060405 080708 0a090a 090809 0b090a 0c0a0b 090708 070405 080506 070405 090707 6d4c2c 4a341f 040305 070505 080506 080505 110e0c 14110e 0f0c0b
+0a0f19 0a0f19 080d17 090e18 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f18 0a0f18 0a0f18 0a0e18 0a0f19 0a0f19 0a0f19 0a0f19 090f19 080d18 0e121b 0a0f19 0a0f19 0a0f19 0a0f19 090e18 080e18 090e18
+0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 090f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19 0a0f19
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+for f in ['/tmp/base_play.png','/tmp/t2_play.png']:
+    im=Image.open(f).convert('RGB'); w,h=im.size
+    col=[im.getpixel((640,y)) for y in range(h-1,h-120,-1)]
+    idx=next((i for i,p in enumerate(col) if p!=(10,15,25)), None)
+    print(f,'strip height', idx)
+"
+/tmp/base_play.png strip height 87
+/tmp/t2_play.png strip height 87
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -127,8 +127,60 @@
+     }
+   });
+ }
+ 
++/**
++ * Reframe the sun for the street shot: low and behind the viewer's left shoulder, so the faces
++ * the camera sees are warm-lit and the shadows rake across the wet asphalt towards the harbour.
++ */
++function streetDusk(scene) {
++  const THREE = getThree();
++  scene.fog = new THREE.FogExp2(0x243049, 0.0029);
++  scene.traverse((child) => {
++    if (child.isPoints) child.visible = false;
++    if (child.isHemisphereLight) {
++      child.color.setHex(0x4a5f86);
++      child.groundColor.setHex(0x241a12);
++      child.intensity = 0.72;
++    } else if (child.isAmbientLight) {
++      child.color.setHex(0x505064);
++      child.intensity = 0.26;
++    } else if (child.isDirectionalLight) {
++      child.color.setHex(0xffb26b);
++      child.intensity = 2.9;
++      child.position.set(-300, 146, -210);
++      if (child.target) {
++        child.target.position.set(6, 0, 96);
++        child.target.updateMatrixWorld();
++      }
++      child.shadow.camera.left = -120;
++      child.shadow.camera.right = 120;
++      child.shadow.camera.top = 130;
++      child.shadow.camera.bottom = -130;
++      child.shadow.camera.far = 900;
++      child.shadow.bias = -0.0005;
++      child.shadow.normalBias = 0.05;
++      child.shadow.mapSize.set(2048, 2048);
++      if (child.shadow.map) {
++        child.shadow.map.dispose();
++        child.shadow.map = null;
++      }
++    }
++  });
++  // A big soft sunset glow low in the north, past the police car, to give the street a backdrop.
++  const glow = new THREE.Mesh(
++    new THREE.PlaneGeometry(1100, 260),
++    new THREE.MeshBasicMaterial({ map: makeSkyTexture(THREE, [
++      [0, 0.0, 'rgba(255,190,120,0.95)'],
++      [0, 0.45, 'rgba(240,150,100,0.7)'],
++      [0, 1.0, 'rgba(120,90,110,0.0)'],
++    ]), transparent: true, opacity: 0.75, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }),
++  );
++  glow.position.set(30, 90, 470);
++  glow.rotation.y = Math.PI;
++  scene.add(glow);
++}
++
+ function blueHour(scene) {
+   const THREE = getThree();
+   scene.background = makeSkyTexture(THREE, [
+     [0, 0.0, '#080f1e'],
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -410,8 +410,9 @@
+ }
+ 
+ if (name === 'play') {
+   if (hud) call(hud, 'setVisible', true);
++  streetDusk(scene);
+   call(player.setControlsEnabled !== undefined ? player : null, 'setControlsEnabled', false);
+   if (player) {
+     player.health = 62;
+     player.armour = 40;
+
+[0m
+[0m← [0mEdit game/src/peds.js
+Index: /root/gta6-entry/game/src/peds.js
+===================================================================
+--- /root/gta6-entry/game/src/peds.js
++++ /root/gta6-entry/game/src/peds.js
+@@ -1,16 +1,17 @@
+ // The crowd. Every pedestrian is a small box person with a random shirt, trousers and skin tone,
+ // walking a beat along the kerb of one city block. When something loud happens nearby they scatter:
+ // they run from a threat point for a while, then calm down and pick a new beat. Nothing here is a
+ // game rule, so the pistol, missions and minimap all just read the `peds` array.
+-const PED_COUNT = 14;
++const PED_COUNT = 20;
+ const WALK_SPEED = 1.25;
+ const RUN_SPEED = 4.4;
+ const SCATTER_TIME = 7;
+ 
+-const SHIRTS = [0x8b4a3a, 0x3a5a8b, 0x6b6b4a, 0x7a3a6b, 0x3a7a6b, 0x9a7b32, 0x555a63, 0xb0b4b8, 0x2f4f8b, 0x9a3a3a];
+-const TROUSERS = [0x24262e, 0x3b3f47, 0x4a4038, 0x1d2126, 0x2c3440];
+-const SKINS = [0xc99a74, 0xa87a54, 0x8a5f3f, 0xe0b48f, 0x6f4a30];
++const SHIRTS = [0x8b4a3a, 0x3a5a8b, 0x6b6b4a, 0x7a3a6b, 0x3a7a6b, 0x9a7b32, 0x555a63, 0xb0b4b8, 0x2f4f8b, 0x9a3a3a, 0xdcd2bd, 0x2f6b4f, 0x6d4a86, 0xc4643a, 0x4a7a8b];
++const TROUSERS = [0x24262e, 0x3b3f47, 0x4a4038, 0x1d2126, 0x2c3440, 0x5a5248, 0x23324a];
++const SKINS = [0xc99a74, 0xa87a54, 0x8a5f3f, 0xe0b48f, 0x6f4a30, 0xb8855f, 0xd8a882];
++const HATS = [0x1d2126, 0x8b4a3a, 0x2f4f8b, 0x6b6b4a, null];
+ 
+ function getThree() {
+   const THREE = globalThis.THREE;
+   if (!THREE) throw new Error('peds.js needs the global THREE from three.min.js');
+
+[0m
+[0m← [0mEdit game/src/peds.js
+Index: /root/gta6-entry/game/src/peds.js
+===================================================================
+--- /root/gta6-entry/game/src/peds.js
++++ /root/gta6-entry/game/src/peds.js
+@@ -64,19 +64,25 @@
+     }
+   }
+ }
+ 
+-function buildPed(THREE, shirt, trousers, skin) {
++function buildPed(THREE, shirt, trousers, skin, hat) {
+   const group = new THREE.Group();
+   const shirtMaterial = new THREE.MeshStandardMaterial({ color: shirt, roughness: 0.9 });
+   const trouserMaterial = new THREE.MeshStandardMaterial({ color: trousers, roughness: 0.92 });
+   const skinMaterial = new THREE.MeshStandardMaterial({ color: skin, roughness: 0.85 });
+   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.62, 0.3), shirtMaterial);
+   torso.position.y = 1.18;
+   group.add(torso);
++  const collar = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.08, 0.28), new THREE.MeshStandardMaterial({ color: 0x20242c, roughness: 0.9 }));
++  collar.position.y = 1.5;
++  group.add(collar);
+   const head = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.28, 0.26), skinMaterial);
+   head.position.y = 1.62;
+   group.add(head);
++  const hair = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.09, 0.28), new THREE.MeshStandardMaterial({ color: hat === null ? 0x241d17 : hat, roughness: 0.95 }));
++  hair.position.y = 1.78;
++  group.add(hair);
+   const limbs = [];
+   for (const side of [-1, 1]) {
+     const legGroup = new THREE.Group();
+     legGroup.position.set(side * 0.12, 0.88, 0);
+@@ -89,13 +95,19 @@
+     armGroup.position.set(side * 0.32, 1.42, 0);
+     const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.56, 0.15), shirtMaterial);
+     arm.position.y = -0.26;
+     armGroup.add(arm);
++    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.13), skinMaterial);
++    hand.position.y = -0.55;
++    armGroup.add(hand);
+     group.add(armGroup);
+     limbs.push(armGroup);
+   }
+   group.traverse((child) => {
+-    if (child.isMesh) child.castShadow = true;
++    if (child.isMesh) {
++      child.castShadow = true;
++      child.receiveShadow = true;
++    }
+   });
+   return { group, legs: [limbs[0], limbs[2]], arms: [limbs[1], limbs[3]] };
+ }
+ 
+
+[0m
+[0m← [0mEdit game/src/peds.js
+Index: /root/gta6-entry/game/src/peds.js
+===================================================================
+--- /root/gta6-entry/game/src/peds.js
++++ /root/gta6-entry/game/src/peds.js
+@@ -137,9 +137,9 @@
+   return { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius, y: 0.02 };
+ }
+ 
+ function makePed(index) {
+-  const look = buildPed(THREE, pick(SHIRTS), pick(TROUSERS), pick(SKINS));
++  const look = buildPed(THREE, pick(SHIRTS), pick(TROUSERS), pick(SKINS), pick(HATS));
+   const at = randomBeat();
+   look.group.position.set(at.x, at.y, at.z);
+   scene.add(look.group);
+   const entity = {
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game && for f in src/*.js; do node --check $f || echo FAIL $f; done; cd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t3_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/t3.log; ls -la /tmp/t3_play.png; grep -i uncaught /tmp/t3.log | head
+-rw-r--r-- 1 root root 337274 Nov 17 22:43 /tmp/t3_play.png
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t3_play.png').convert('RGB')
+w,h=im.size
+r=im.resize((60,34))
+px=list(r.getdata())
+chars=' .:-=+*#%@'
+for y in range(34):
+    line=''
+    for x in range(60):
+        p=px[y*60+x]; v=(p[0]*0.3+p[1]*0.5+p[2]*0.2)
+        line+=chars[min(9,int(v/25))]
+    print(line)
+print()
+for name,box in [('sky',(0,0,w,h//3)),('street',(0,h//2,w,h))]:
+    rr=im.crop(box).resize((32,18)); pp=list(rr.getdata())
+    print(name, [round(sum(p[i] for p in pp)/len(pp)) for i in range(3)])
+EOF
+#*:::::::::::+################**********#+   .::.:::::::::::
+**::::::::::::=======#####**##*********#+    .:--.-:-=--=++-
+**--::::.:::.::::::::-#########********=     .::-:-:--:::--:
+**-..        ........ -########*******+   .  .::::::::::::::
++*=:.       ...... ....=########****+:. ..   .:==:+:====-=:=
+ ..:.  :.:.:::-:-:-.....+********+++.  .. .  .::::::::::::::
+       . . :..:.:.:...:..+*******++:    .    ::-:..:.:..--:.
+-..    ..:.-:-::::-::.:::.+******++:     . . :::::::...::-:.
+. :.:  . . :......--..::::-++***=...   ...   :::.=-...::::::
+    .  .::...-::-:-:-.::::::+###=.:..        ::=:--...=:=--=
+    .      ............:.::.=###=.:..        :::.  .: .::::*
+  .:   .-::-:-:--:-:-.:::.:.=##*-   .        .:=    ..=...==
+            ......... .:......:...                        .:
+            ..........::......... . ..                    ..
+            .......:-=..::.:.:.:. ..:....::                 
+               ..-==++---:::....        .        .          
+             ..:.:-==-==----:          .:.     . .::        
+                .-=--+++-..+=:.  -+=:  :==:.   =. -:        
+    ..        .-=:.:-==:  .=:.:  .---.  .---.          ...  
+ :--::      .--:                                           .
+   .      .--:                                              
+   ::-: .-=:                                                
+  ::::::=:                                                  
+ .::-:::.                                                   
+ :::--...                                                   
+-----::::                                                :- 
+=-::::-:.                                               ... 
+. :::...                                   ..          ...: 
+    ::                                     -*:         .... 
+                                            =+.             
+                                                            
+                                                            
+                                                            
+                                                            
+
+sky [97, 68, 54]
+street [17, 16, 16]
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t3_play.png').convert('RGB')
+w,h=im.size
+print('grid means (4 rows x 4 cols)')
+for gy in range(4):
+    row=[]
+    for gx in range(4):
+        box=(gx*w//4, gy*h//4, (gx+1)*w//4, (gy+1)*h//4)
+        c=im.crop(box).resize((16,9)); px=list(c.getdata())
+        row.append(tuple(round(sum(p[i] for p in px)/len(px)) for i in range(3)))
+    print(row)
+# brightest pixels
+px=im.load()
+best=[]
+for y in range(0,h,6):
+    for x in range(0,w,6):
+        p=px[x,y]
+        best.append((sum(p),x,y,p))
+best.sort(reverse=True)
+print(best[:5])
+print('darkest', best[-3:])
+EOF
+grid means (4 rows x 4 cols)
+[(75, 50, 37), (137, 109, 96), (112, 87, 75), (105, 56, 32)]
+[(26, 21, 18), (73, 59, 52), (40, 29, 24), (50, 29, 19)]
+[(29, 29, 27), (29, 21, 17), (20, 13, 9), (8, 6, 6)]
+[(17, 19, 24), (8, 9, 14), (13, 13, 16), (14, 14, 17)]
+[(765, 108, 528, (255, 255, 255)), (765, 102, 528, (255, 255, 255)), (759, 588, 312, (255, 255, 249)), (731, 90, 540, (238, 243, 250)), (730, 360, 126, (239, 242, 249))]
+darkest [(0, 0, 330, (0, 0, 0)), (0, 0, 318, (0, 0, 0)), (0, 0, 312, (0, 0, 0))]
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t3_play.png').convert('RGB')
+w,h=im.size
+for y in range(0,h,30):
+    print(y, [im.getpixel((x,y)) for x in (200,480,640,800,1080)])
+EOF
+0 [(80, 33, 13), (229, 189, 164), (209, 168, 143), (210, 169, 143), (119, 51, 22)]
+30 [(88, 36, 15), (223, 182, 159), (192, 155, 136), (204, 162, 138), (107, 44, 18)]
+60 [(5, 4, 3), (218, 173, 151), (218, 173, 151), (199, 154, 130), (81, 40, 17)]
+90 [(47, 20, 6), (32, 28, 26), (213, 166, 144), (2, 2, 4), (219, 222, 228)]
+120 [(231, 208, 164), (45, 44, 47), (202, 155, 138), (2, 2, 4), (106, 43, 17)]
+150 [(11, 8, 5), (48, 47, 51), (192, 143, 130), (2, 2, 4), (82, 39, 16)]
+180 [(10, 7, 4), (51, 47, 48), (220, 153, 130), (2, 2, 3), (103, 44, 18)]
+210 [(50, 22, 7), (110, 105, 94), (244, 165, 132), (3, 3, 4), (124, 55, 24)]
+240 [(10, 7, 4), (47, 40, 40), (255, 179, 135), (3, 3, 4), (0, 1, 1)]
+270 [(0, 1, 1), (23, 23, 23), (22, 22, 25), (2, 2, 4), (2, 1, 2)]
+300 [(147, 99, 63), (20, 20, 21), (44, 31, 26), (81, 69, 54), (150, 101, 65)]
+330 [(0, 0, 1), (138, 80, 57), (71, 54, 44), (36, 28, 22), (0, 0, 0)]
+360 [(1, 0, 1), (194, 138, 100), (4, 1, 0), (4, 1, 1), (247, 242, 228)]
+390 [(1, 0, 0), (185, 135, 99), (131, 57, 22), (163, 115, 79), (2, 1, 1)]
+420 [(2, 1, 1), (23, 21, 22), (8, 4, 2), (3, 1, 1), (1, 0, 0)]
+450 [(109, 72, 55), (2, 1, 1), (7, 3, 1), (3, 1, 1), (2, 1, 1)]
+480 [(1, 0, 1), (2, 1, 1), (6, 3, 1), (4, 2, 1), (2, 1, 1)]
+510 [(1, 0, 0), (3, 1, 1), (4, 2, 1), (4, 2, 1), (3, 1, 1)]
+540 [(2, 1, 1), (3, 1, 1), (4, 2, 1), (5, 2, 1), (5, 2, 1)]
+570 [(2, 1, 1), (4, 2, 1), (5, 2, 1), (6, 2, 2), (6, 2, 1)]
+600 [(3, 1, 1), (4, 2, 1), (7, 7, 8), (7, 3, 2), (7, 3, 2)]
+630 [(4, 2, 1), (5, 2, 1), (8, 3, 2), (7, 3, 1), (8, 3, 2)]
+660 [(10, 15, 25), (10, 15, 25), (10, 15, 25), (10, 15, 25), (10, 15, 25)]
+690 [(10, 15, 25), (10, 15, 25), (10, 15, 25), (10, 15, 25), (10, 15, 25)]
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && python3 - <<'EOF'
+import re
+p='world.js'
+s=open(p).read()
+s=s.replace("""    context.fillStyle = '#2b2e35';
+    context.fillRect(0, 0, size, size);
+    for (let index = 0; index < 9000; index += 1) {
+      const shade = 34 + Math.floor(random() * 26);""","""    context.fillStyle = '#6a6e77';
+    context.fillRect(0, 0, size, size);
+    for (let index = 0; index < 9000; index += 1) {
+      const shade = 88 + Math.floor(random() * 54);""")
+s=s.replace("""      context.fillStyle = random() < 0.5 ? 'rgba(150,150,148,0.14)' : 'rgba(12,13,16,0.35)';""","""      context.fillStyle = random() < 0.5 ? 'rgba(196,196,192,0.22)' : 'rgba(40,42,48,0.35)';""")
+s=s.replace("""    context.strokeStyle = 'rgba(12,14,17,0.5)';""","""    context.strokeStyle = 'rgba(46,48,54,0.45)';""")
+s=s.replace("""    glow.addColorStop(0, 'rgba(120,124,132,0)');
+    glow.addColorStop(0.5, 'rgba(120,124,132,0.09)');
+    glow.addColorStop(1, 'rgba(120,124,132,0)');""","""    glow.addColorStop(0, 'rgba(180,184,192,0)');
+    glow.addColorStop(0.5, 'rgba(180,184,192,0.14)');
+    glow.addColorStop(1, 'rgba(180,184,192,0)');""")
+s=s.replace("""    context.fillStyle = '#8e8b83';
+    context.fillRect(0, 0, size, size);
+    for (let index = 0; index < 2600; index += 1) {
+      const shade = 118 + Math.floor(random() * 52);""","""    context.fillStyle = '#b9b5ab';
+    context.fillRect(0, 0, size, size);
+    for (let index = 0; index < 2600; index += 1) {
+      const shade = 160 + Math.floor(random() * 62);""")
+s=s.replace("""    context.strokeStyle = 'rgba(58,56,52,0.55)';""","""    context.strokeStyle = 'rgba(96,92,84,0.6)';""")
+s=s.replace("""    context.fillStyle = '#6f655c';
+    context.fillRect(0, 0, size, size);
+    const rowHeight = 16;""","""    context.fillStyle = '#8f8378';
+    context.fillRect(0, 0, size, size);
+    const rowHeight = 16;""")
+s=s.replace("""        const warm = 92 + Math.floor(random() * 46);""","""        const warm = 126 + Math.floor(random() * 58);""")
+s=s.replace("""    context.fillStyle = '#2c3f52';
+    context.fillRect(0, 0, size, size);
+    const cell = 32;""","""    context.fillStyle = '#4b6377';
+    context.fillRect(0, 0, size, size);
+    const cell = 32;""")
+s=s.replace("""        context.fillStyle = 'rgba(' + (56 + lift) + ',' + (78 + lift) + ',' + (98 + lift) + ',0.9)';""","""        context.fillStyle = 'rgba(' + (92 + lift) + ',' + (118 + lift) + ',' + (140 + lift) + ',0.9)';""")
+open(p,'w').write(s)
+EOF
+node --check world.js && echo ok
+ok
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -456,8 +456,19 @@
+     camera.updateProjectionMatrix();
+   }
+   // Re-aim with a touch more downward pitch so the wet road fills the lower third.
+   camera.lookAt(camera.position.x, 1.1, camera.position.z + 14);
++  if (typeof window !== 'undefined' && window.location && /[?&]dbg=over/.test(window.location.search)) {
++    camera.position.set(70, 96, 10);
++    camera.lookAt(0, 4, 120);
++    if (camera.isPerspectiveCamera) {
++      camera.fov = 55;
++      camera.updateProjectionMatrix();
++    }
++  } else if (typeof window !== 'undefined' && window.location && /[?&]dbg=low/.test(window.location.search)) {
++    camera.position.set(-16, 9, 34);
++    camera.lookAt(4, 6, 110);
++  }
+   if (ui) call(ui, 'showPrompt');
+   return;
+ }
+ 
+
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t4_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1&dbg=over" 2>/tmp/t4.log; ls -la /tmp/t4_play.png
+-rw-r--r-- 1 root root 790678 Nov 17 22:45 /tmp/t4_play.png
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t4_play.png').convert('RGB')
+w,h=im.size
+r=im.resize((72,34)); px=list(r.getdata()); chars=' .:-=+*#%@'
+for y in range(34):
+    print(''.join(chars[min(9,int((px[y*72+x][0]*.3+px[y*72+x][1]*.5+px[y*72+x][2]*.2)/25.5))] for x in range(72)))
+EOF
+-----------------------------------------:..........::.............::::.
+-------------:-------:::::::::--::::::::::..........::..........----===.
+-:::::::::::::::::::::::::.........................:::...........::::::.
+:::::::::::::......................................::..........::::::...
+:::..........:::::::........................::::...:::.........:--:-:::.
+.............:---:-:......... ..............::::...:................:::.
+             .::----:.:.............:::.....:::..:.:...... ...::........
+        ......:-:---:............::.:-:...........................:.....
+       .......:-----:         ..:::::::::::::...........................
+             ..:-::::......     .. ..::::::::...... .........           
+     .     .   .::::::....    .    . ...:.....:::.     .....            
+    .:.         ::::::::       .:  ..   ...::::-:         ....      .   
+ ......         .:::::--.      .    .  . .:-----.  .. .    ......  ...:.
+.......       . .-------.              . .----:.   .  ...  .. ..  . ....
+.....       .....:------:.               .-:::     ......   ..          
+...        ..   ..-----:  .        ...   ..                             
+.          ....   ::..     .   .......                                  
+........                   .....:.   .:::.                              
+.....::.                    ....     :....:.  .                         
+.:--=::.                 ..          ::...:.  ...       .              .
+.:::-...              ......        .........  . ..       ...         :.
+:::::---.            ...          .............  ... . .. .....      :. 
+:::-::.:::                         .............  .    .....  ..   .-  .
+:::::-:.::.                         .............     ..  . ... .. -    
+:::::--....       .                  ...........:..    .  . ...   :     
+:---::::::.    ..:::.                ....::.......:.       ....  :   =- 
+--::::.-:-   .:. ...:                 ............:..     .   . .  .::  
+. .:.:...   .::     :.              .  .. . ...........     ..    .::-: 
+     ::     :.      .                   ..::...:....::.           :.... 
+            :      .                     ...........::..
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t5_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/t5.log; ls -la /tmp/t5_play.png; python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t5_play.png').convert('RGB')
+w,h=im.size
+for gy in range(4):
+    row=[]
+    for gx in range(4):
+        c=im.crop((gx*w//4, gy*h//4, (gx+1)*w//4, (gy+1)*h//4)).resize((16,9)); px=list(c.getdata())
+        row.append(tuple(round(sum(p[i] for p in px)/len(px)) for i in range(3)))
+    print(row)
+EOF
+-rw-r--r-- 1 root root 443274 Nov 17 22:45 /tmp/t5_play.png
+[(93, 63, 44), (144, 114, 98), (114, 88, 76), (138, 78, 45)]
+[(32, 26, 23), (80, 64, 56), (48, 35, 30), (63, 38, 26)]
+[(32, 31, 31), (41, 29, 27), (35, 22, 19), (21, 14, 15)]
+[(24, 23, 29), (20, 17, 21), (27, 22, 24), (29, 24, 25)]
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t5_play.png').convert('RGB')
+w,h=im.size
+c=im.crop((0,h//2,w,h)).resize((100,28)); px=list(c.getdata()); chars=' .:-=+*#%@'
+for y in range(28):
+    print(''.join(chars[min(9,int((px[y*100+x][0]*.3+px[y*100+x][1]*.5+px[y*100+x][2]*.2)/16))] for x in range(100)))
+EOF
+....:=*#*+=*%@@@%+==-*@#-:..   +%###=   .+###*-:      #@#  +@@...           
+                         .:=*#*==+%@@@@%-::.-%@#=+=-   :#%##%+.   -*####=.            .:.:::.       
+                        .=##+:..=#####*:....=#*: -=-    =*+++*=    .=+++*+.      .  ..:    ..:::.   
+ .++++**#+            :=**=:.............::...                                                ..::::
+ .=++++...          :=**=.   .......:....::::.                                                    ..
+  .::::          .-+*#+:      .....::::::.....                                                      
+      :---:    .-+*#+:            .......     .                                                     
+    .=-=+*+- :=+*#+:                         .           ... ..          .                          
+   :++:---+==**#+:                         .         .... ........  .........                       
+  .===:=-:---**:                          ... ..     ..................  ........        .          
+  :::::++-----.                      ... .......    .................................       ....    
+  -====+*=====:                 ..   ..... .....    ......................................     .....
+ .----:=%:    .            ...     .............    ..........................................     .
+-+++++==*--:---         ...... .................    ...........................................:**- 
++*+===+=--+==+-      ....   ......................  ...........................................:@*:.
+##*===:---+==+.    ... .  ........................  .........................................-::-:..
+#=:=++:---+=--     ...............................  .........................................:::::..
+.  .==.-= ..:.     ..........................:.:.....::::..............:=-:................--=--=+:.
+     .:*#-:.  ...............................:....::.::::........:.....:%@%-.::............-=+==+*:.
+      .::.. ...................................................:::......-%@%-.::......::...::::..:..
+   ..       .........................................::........::........=@@%:......................
+  ..         .....   .....................................................:--:......................
+[0m
+[0m✗ [0mEdit game/src/shots.js failed
+[91m[1mError: [0mCould not find oldString in the file. It must match exactly, including whitespace, indentation, and line endings.
+[0m→ [0mRead game/src/shots.js[90m [limit=55, offset=118][0m
+[0m
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -102,8 +102,9 @@
+ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+ renderer.setSize(window.innerWidth, window.innerHeight, false);
+ configureRenderer(renderer, THREE);
++if (typeof window !== 'undefined' && /[?&]dbg=noshadow/.test(window.location.search)) renderer.shadowMap.enabled = false;
+ 
+ const scene = new THREE.Scene();
+ const camera = new THREE.PerspectiveCamera(62, Math.max(1, window.innerWidth) / Math.max(1, window.innerHeight), 0.1, 2200);
+ camera.position.set(0, 26, 120);
+
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t6_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1&dbg=noshadow" 2>/tmp/t6.log; ls -la /tmp/t6_play.png; python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t6_play.png').convert('RGB'); w,h=im.size
+for gy in range(4):
+    print([tuple(round(sum(p[i] for p in im.crop((gx*w//4,gy*h//4,(gx+1)*w//4,(gy+1)*h//4)).resize((12,7)).getdata())/84) for i in range(3)) for gx in range(4)])
+"
+-rw-r--r-- 1 root root 513640 Nov 17 22:47 /tmp/t6_play.png
+[(93, 63, 44), (144, 114, 98), (118, 91, 77), (138, 78, 45)]
+[(55, 40, 29), (99, 76, 62), (74, 49, 37), (99, 57, 34)]
+[(58, 45, 37), (80, 53, 38), (74, 47, 31), (63, 39, 27)]
+[(40, 33, 33), (40, 30, 27), (45, 33, 29), (49, 36, 32)]
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -137,20 +137,22 @@
+ scene.fog = new THREE.FogExp2(0x243049, 0.0029);
+ scene.traverse((child) => {
+   if (child.isPoints) child.visible = false;
+   if (child.isHemisphereLight) {
+-    child.color.setHex(0x4a5f86);
+-    child.groundColor.setHex(0x241a12);
+-    child.intensity = 0.72;
++    child.color.setHex(0x5a7098);
++    child.groundColor.setHex(0x3a2a1e);
++    child.intensity = 1.05;
+   } else if (child.isAmbientLight) {
+-    child.color.setHex(0x505064);
+-    child.intensity = 0.26;
++    child.color.setHex(0x726b82);
++    child.intensity = 0.5;
+   } else if (child.isDirectionalLight) {
+     child.color.setHex(0xffb26b);
+     child.intensity = 2.9;
+-    child.position.set(-300, 146, -210);
++    // 42 degrees up and mostly from behind the camera, so the avenue itself is sunlit and the
++    // tower shadows rake across rather than blanket the road.
++    child.position.set(190, 260, -170);
+     if (child.target) {
+-      child.target.position.set(6, 0, 96);
++      child.target.position.set(-4, 0, 96);
+       child.target.updateMatrixWorld();
+     }
+     child.shadow.camera.left = -120;
+     child.shadow.camera.right = 120;
+
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t7_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/t7.log; ls -la /tmp/t7_play.png; python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t7_play.png').convert('RGB'); w,h=im.size
+for gy in range(4):
+    print([tuple(round(sum(p[i] for p in im.crop((gx*w//4,gy*h//4,(gx+1)*w//4,(gy+1)*h//4)).resize((12,7)).getdata())/84) for i in range(3)) for gx in range(4)])
+"
+-rw-r--r-- 1 root root 522997 Nov 17 22:47 /tmp/t7_play.png
+[(92, 64, 49), (145, 116, 101), (160, 111, 89), (137, 79, 50)]
+[(44, 36, 33), (87, 71, 65), (100, 64, 50), (104, 63, 43)]
+[(32, 33, 37), (47, 38, 42), (44, 34, 35), (42, 31, 33)]
+[(25, 25, 34), (23, 21, 28), (30, 26, 31), (32, 28, 33)]
+[0m
+The bottom strip is the page background outside Chrome's viewport. Let me probe object screen positions to verify the composition objectively.
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -435,8 +435,24 @@
+   renderer.render(scene, camera);
+   renderer.render(scene, camera);
+   painted = 2;
+   window.__shotReady = true;
++  if (typeof window !== 'undefined' && /[?&]dbg=probe/.test(window.location.search)) {
++    const out = { vp: [window.innerWidth, window.innerHeight], player: null, peds: [], units: [], cars: [], lights: 0 };
++    const project = (object) => {
++      if (!object || !object.position) return null;
++      const point = object.position.clone();
++      point.project(camera);
++      if (point.z > 1) return null;
++      return [Math.round((point.x * 0.5 + 0.5) * window.innerWidth), Math.round((-point.y * 0.5 + 0.5) * window.innerHeight), Math.round(point.z * 100) / 100];
++    };
++    out.player = project(player && player.group);
++    if (peds && peds.peds) for (let i = 0; i < peds.peds.length; i += 1) out.peds.push(project(peds.peds[i].group));
++    if (police && police.units) for (let i = 0; i < police.units.length; i += 1) out.units.push(project(police.units[i].group));
++    if (vehicles && vehicles.cars) for (let i = 0; i < vehicles.cars.length; i += 1) out.cars.push(project(vehicles.cars[i].group));
++    out.lights = (() => { let n = 0; scene.traverse((c) => { if (c.isLight && c.isLight()) n += 1; }); return n; })();
++    document.title = 'PROBE' + JSON.stringify(out);
++  }
+ } else {
+   if (hud) hud.setVisible(false);
+   if (player && typeof player.setControlsEnabled === 'function') player.setControlsEnabled(false);
+   if (ui) ui.showStart();
+
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --dump-dom "http://127.0.0.1:8731/index.html?shot=play&seed=1&dbg=probe" 2>/dev/null | grep -o '<title>[^<]*</title>' | head -2
+<title>Port Vireo: Salt &amp; Sin</title>
+[0m
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -448,9 +448,9 @@
+     out.player = project(player && player.group);
+     if (peds && peds.peds) for (let i = 0; i < peds.peds.length; i += 1) out.peds.push(project(peds.peds[i].group));
+     if (police && police.units) for (let i = 0; i < police.units.length; i += 1) out.units.push(project(police.units[i].group));
+     if (vehicles && vehicles.cars) for (let i = 0; i < vehicles.cars.length; i += 1) out.cars.push(project(vehicles.cars[i].group));
+-    out.lights = (() => { let n = 0; scene.traverse((c) => { if (c.isLight && c.isLight()) n += 1; }); return n; })();
++    out.lights = (() => { let n = 0; scene.traverse((c) => { if (c.isLight) n += 1; }); return n; })();
+     document.title = 'PROBE' + JSON.stringify(out);
+   }
+ } else {
+   if (hud) hud.setVisible(false);
+
+[0m
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -449,9 +449,9 @@
+     if (peds && peds.peds) for (let i = 0; i < peds.peds.length; i += 1) out.peds.push(project(peds.peds[i].group));
+     if (police && police.units) for (let i = 0; i < police.units.length; i += 1) out.units.push(project(police.units[i].group));
+     if (vehicles && vehicles.cars) for (let i = 0; i < vehicles.cars.length; i += 1) out.cars.push(project(vehicles.cars[i].group));
+     out.lights = (() => { let n = 0; scene.traverse((c) => { if (c.isLight) n += 1; }); return n; })();
+-    document.title = 'PROBE' + JSON.stringify(out);
++    console.log('PROBE' + JSON.stringify(out));
+   }
+ } else {
+   if (hud) hud.setVisible(false);
+   if (player && typeof player.setControlsEnabled === 'function') player.setControlsEnabled(false);
+
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t8_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1&dbg=probe" 2>/tmp/t8.log >/dev/null; grep -o 'PROBE{.*}' /tmp/t8.log | head -1
+PROBE{"vp":[1280,633],"player":[640,569,0.96],"peds":[null,[810,285,1],[563,273,1],null,[-3132,1579,0.83],[838,292,0.99],[562,273,1],null,null,[758,276,1],[563,277,1],null,[-43,445,0.97],[757,275,1],[577,271,1],null,[-125,510,0.97],[784,282,1],[560,275,1],null],"units":[[569,331,0.99]],"cars":[[971,381,0.98],[605,299,0.99],[741,291,0.99],[616,284,1],[713,279,1],[622,275,1],[694,272,1],[625,269,1],null,null,null,[1363,262,1],null,null,[1091,263,1],null,[16124,485,0.97],null,[-229,277,1],null],"lights":8}
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t7_play.png').convert('RGB')
+w,h=im.size
+c=im.crop((0,0,w,633)).resize((96,38))
+px=list(c.getdata()); chars=' .:-=+*#%@'
+for y in range(38):
+    line=''
+    for x in range(96):
+        p=px[y*96+x]; v=(p[0]*.3+p[1]*.58+p[2]*.12)**0.65
+        line+=chars[min(9,int(v/12.5))]
+    print('%3d %s'%(y*633//38,line))
+EOF
+0 :::..................::::::::::::::::::::::::::::::::::::::::::::::.............................
+ 16 :::.................  .:::::::::::::::::::::::::::::::::::::::::::..............................
+ 33 :::.................    ..........::::::::::::::::::::::::::::::............::......:.......:...
+ 49 :::.......... .........  ......... .:::::::::::::::::::::::::::.................................
+ 66 :::....             ..............  .:::::::::::::::::::::::::..................................
+ 83 ::::....           ...............   .:::::::::::::::::::::.................:...:...::.::...:..:
+ 99  .......          ................    .:::::::::::::::::::......................................
+116            .: .. ......:..:..:.  . .   .:::::::::::::::::.......................................
+133                   .   .. .... .. . ...  .::::::::::::.......................:... ...... ...:... 
+149 ..          .. . .. .. .. ........   ..  .::::::::::::..........................................
+166  . .. ..    .. . ........ ....:... ... .. .:::::::::..  .......................:..... ..........
+183                      . .. .. ....    .........::::::........................:..:..... .:..:...:.
+199       ..    .. ..   .:... ...:..:. ...  . ....::::::................................. ..........
+216                                         .... .::::::........................... . ... ........::
+233     ..      .. .. ....... .. .....  .... .....:::::........................:..     .. :... ...:.
+249              . .. .. .... .. .....    .    ...................................    ... ..........
+266                                    ...         .......   ... .  ..............   .... ..........
+283   ....  .................. ........ .. ..    .................................  ....  ..........
+299 .................. ......  ......:: .................................       ........  ..........
+316                            ....::::................             ..            ......  ..........
+333                      ..... .::::................ .             ...            ...... ...........
+349                             .......::::.....:..      .....    .....        ..   ....  . ........
+366                           .......:::::.....:::....   .::::.    .::::..     ..   .........       
+383                         ....   ..:..:.    .:.. ...    ......     ......            ...........  
+399   .......            ...                                                            ............
+416   .....           ....                                                                  ........
+433                ....                                                                         ....
+449     ....... .....                                                                               
+466    ... . .....                                                                                  
+483    .  ...   .                                                                                   
+499   ............                                                                                  
+516  ..... ..                                                                                       
+533 ..............                                                                              :.. 
+549 . .... . .....                                                                             ...  
+566    ... . .. .                                                                            .....  
+583        ..                                            .              .::.                ....... 
+599        ..                                                            .:::.              ... ..  
+616                                                                       .:::.
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t7_play.png').convert('RGB')
+for y in range(340,633,40):
+    print(y, [im.getpixel((x,y)) for x in range(60,1240,120)])
+"
+340 [(14, 17, 33), (14, 15, 29), (43, 38, 52), (225, 181, 145), (147, 114, 106), (58, 47, 55), (30, 24, 34), (0, 0, 0), (0, 0, 0), (84, 54, 41)]
+380 [(5, 5, 10), (7, 6, 11), (8, 7, 11), (89, 78, 79), (45, 39, 50), (142, 68, 35), (203, 161, 125), (202, 160, 124), (0, 0, 0), (133, 92, 71)]
+420 [(109, 167, 237), (9, 12, 17), (43, 34, 43), (39, 36, 48), (44, 40, 50), (9, 5, 3), (22, 17, 25), (25, 21, 29), (19, 16, 25), (16, 14, 23)]
+460 [(73, 80, 91), (155, 113, 93), (20, 18, 27), (24, 20, 29), (17, 13, 18), (8, 4, 3), (28, 21, 29), (27, 20, 27), (26, 20, 27), (27, 22, 29)]
+500 [(64, 72, 82), (66, 73, 84), (25, 21, 28), (27, 22, 29), (27, 20, 26), (15, 13, 23), (33, 25, 30), (34, 25, 30), (37, 27, 33), (17, 12, 17)]
+540 [(74, 81, 92), (73, 80, 91), (29, 23, 30), (38, 29, 35), (33, 24, 29), (14, 13, 23), (37, 27, 31), (40, 29, 33), (38, 27, 32), (36, 26, 30)]
+580 [(73, 80, 91), (28, 22, 30), (31, 24, 31), (33, 24, 29), (18, 16, 18), (7, 6, 8), (49, 35, 36), (46, 32, 34), (41, 29, 31), (42, 30, 32)]
+620 [(29, 23, 31), (33, 26, 31), (32, 24, 30), (37, 27, 31), (44, 31, 34), (48, 33, 35), (44, 31, 33), (46, 32, 33), (49, 34, 35), (45, 31, 30)]
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -137,14 +137,14 @@
+ scene.fog = new THREE.FogExp2(0x243049, 0.0029);
+ scene.traverse((child) => {
+   if (child.isPoints) child.visible = false;
+   if (child.isHemisphereLight) {
+-    child.color.setHex(0x5a7098);
+-    child.groundColor.setHex(0x3a2a1e);
+-    child.intensity = 1.05;
++    child.color.setHex(0x7288b0);
++    child.groundColor.setHex(0x4a3424);
++    child.intensity = 1.65;
+   } else if (child.isAmbientLight) {
+-    child.color.setHex(0x726b82);
+-    child.intensity = 0.5;
++    child.color.setHex(0x8a8296);
++    child.intensity = 0.55;
+   } else if (child.isDirectionalLight) {
+     child.color.setHex(0xffb26b);
+     child.intensity = 2.9;
+     // 42 degrees up and mostly from behind the camera, so the avenue itself is sunlit and the
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && python3 - <<'EOF'
+p='world.js'; s=open(p).read()
+s=s.replace("const asphalt = new THREE.MeshStandardMaterial({ color: 0xffffff, map: asphaltMap, roughness: 0.88, metalness: 0.16 });",
+            "const asphalt = new THREE.MeshStandardMaterial({ color: 0xffffff, map: asphaltMap, roughness: 0.88, metalness: 0.04 });")
+open(p,'w').write(s)
+EOF
+node --check world.js; cd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t9_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/t9.log; ls -la /tmp/t9_play.png; python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t9_play.png').convert('RGB')
+for y in range(340,640,50):
+    print(y, [im.getpixel((x,y)) for x in range(100,1200,140)])
+"
+-rw-r--r-- 1 root root 563093 Nov 17 22:50 /tmp/t9_play.png
+340 [(30, 37, 62), (38, 41, 64), (228, 195, 176), (170, 137, 138), (72, 67, 87), (43, 44, 64), (9, 4, 23), (205, 174, 155)]
+390 [(4, 4, 7), (9, 9, 14), (57, 59, 81), (57, 56, 76), (154, 83, 51), (207, 176, 156), (207, 176, 156), (4, 2, 6)]
+440 [(16, 17, 25), (113, 92, 98), (37, 39, 57), (35, 34, 49), (10, 6, 7), (39, 38, 56), (38, 38, 56), (22, 22, 36)]
+490 [(79, 84, 93), (37, 38, 57), (21, 20, 31), (41, 39, 57), (17, 19, 39), (46, 43, 58), (44, 41, 57), (48, 45, 60)]
+540 [(67, 75, 87), (28, 27, 40), (40, 38, 53), (46, 42, 58), (17, 19, 39), (51, 45, 59), (51, 45, 58), (49, 44, 58)]
+590 [(95, 95, 82), (44, 41, 58), (48, 43, 59), (49, 43, 58), (224, 216, 200), (56, 47, 57), (217, 186, 161), (64, 53, 63)]
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t9_play.png').convert('RGB')
+w,h=im.size
+c=im.crop((0,0,w,633)).resize((110,42))
+px=list(c.getdata()); chars=' .:-=+*#%@'
+for y in range(42):
+    line=''
+    for x in range(110):
+        p=px[y*110+x]; v=(p[0]*.3+p[1]*.58+p[2]*.12)**0.7
+        line+=chars[min(9,int(v/11))]
+    print('%3d %s'%(y*633//42,line))
+EOF
+0 ---:::::::::::::::::::..-----------------------------------------------------:..:.::::::::::::::::::::::::::::
+ 15 ----::::::::::::::::::. .:-------------------------------------------------::...:..:::::::::::::::::::::::::::
+ 30 ----::::::::::::::::::.....::::::::::::-----------------------------------:....::..::::--:.:-:.:--:::::-:---::
+ 45 ----:::::::::::..:::::........::::::::..---------------------------------:........::::::::::::::::::::::::::::
+ 60 ----::::.................................------------------------------::.....::..::::::::::::::::::::::::::::
+ 75 ----::.:. .  ........................... .:----------------------------:...::::::..:::::::.:::.:::::-:::::::::
+ 90 ::--::::..... ... ....................... .:-----------------------::::..:::::....:::::--:::-:::-:::--:::-:::-
+105    ...:::..  .......:......:..:..:..........:---------------------::.::::::...::.:::::::::::::::::::::::::::::
+120          ..  ::..-..-:.::.:-.:-.:-:..........:---------------:::::..:::::.::..::..::::::::::::::::::::::::::::
+135           ..   ..  .......................... :--------------::::.:::::.::::...::.:::::-::...::..::...::-:::..
+150 .:. .        .:..:..::.::.::..:..::.::........ .-------------::::::::::.::..:..:::::::::::::::::.:::.:::::::..
+165 .:. :: :. .. .:..:..::.::.::..:..:-:::......... :-----------.....:::.::.::::::....:::::::::-:...:...::::::::::
+180                    .......... ..................:::::------:.....::::::::::.......:::::::.:-:::....:::::::::::
+195        ..    .:: ::....:-..-:.-:.::.:-.............::------:.::::::::::.::::.....::::::::::::::....:::::-:::::
+211        ..  .  .. ............ ......................:------:::::::::::::.:::...:.:::::::::....:::..:::::::::--
+226               .. ............ ......................:------:.:.::::::::...........::::::.......::..::.:..:::--
+241      :.       :-..-..-:.-:.-: ::.:-.:-.....::.......:-----:..:.::::::::..:.......:::::--.     ... :-:::..::--:
+256                     ......... ..............    .......::::........::.:.....:.::.::::::::..  .::. .:::::::::::
+271                      ........ ...........::............:::::.. . .................::::::.....:::. .:..::.:::::
+286 .....................::::::::..:::::::::... .:.    ..:-::--:::::::::::::..:::........:::.......:. ............
+301 ........:::::::.............:..:..::::--......:::::.::::::::::::::::::::::::-:.      ....:::::::. .:::::::::::
+316 ................      .........::::-----::::::::.:..::::::.................:..           .::::.:.......:::::::
+331 ...........................::..------::::::::::::::::...................::::             .::::::..::::::::::::
+346 .............................. ..:::::::---::::::::::.   ....:..........::::.         ...  .:::. .............
+361                           .. ...:::::::------:::.:--::.......-----:....:-----::.      :-:   :-::::............
+376                            ..:::...::------:.....---:.:::....:------:.....:-----:.             ::::::::.......
+391   ......::.              .:::.......::::::.......::.  ...   ......................  ......  ...:::::::::::::..
+406   .:::::...           .:::.........................         ............................... ...........:::::::
+422   ......           .:::.............................        ................................  ..  ......::::::
+437       ......    .::::...............................        .................................  .............::
+452     ......::..::::..................................      ....................................................
+467    .:.........:....................  ...............      ....................................................
+482   ......:.....................    ...................  . .....................................................
+497   ......::...........................................  . .....................................................
+512  .......::.    ......................................  . ................................................. ...
+527 :::...:..:...........................................    ................................................:::..
+542 ::.........:..:..  ....................................  ................................................::...
+557 ....... ...:..:. ......................................  .....................................................
+572 ....... .. ............................................   .................................................:..
+587 ........::.................................... .... ..... ..... ..............:---:..................:::::::..
+602 ...............................................................................:---:..........................
+617 ................................................................................:----.........................
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -146,13 +146,13 @@
+   child.intensity = 0.55;
+ } else if (child.isDirectionalLight) {
+   child.color.setHex(0xffb26b);
+   child.intensity = 2.9;
+-  // 42 degrees up and mostly from behind the camera, so the avenue itself is sunlit and the
+-  // tower shadows rake across rather than blanket the road.
+-  child.position.set(190, 260, -170);
++  // Sun mostly down the avenue (from behind the camera) and high: the tower shadows fall along
++  // the street instead of laying a black blanket across the road we want to see.
++  child.position.set(96, 330, -250);
+   if (child.target) {
+-    child.target.position.set(-4, 0, 96);
++    child.target.position.set(-2, 0, 118);
+     child.target.updateMatrixWorld();
+   }
+   child.shadow.camera.left = -120;
+   child.shadow.camera.right = 120;
+
+[0m
+[0m$ [0mcd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t10_play.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=play&seed=1" 2>/tmp/t10.log; ls -la /tmp/t10_play.png; python3 -c "
+from PIL import Image
+im=Image.open('/tmp/t10_play.png').convert('RGB')
+for y in range(440,640,40):
+    print(y, [im.getpixel((x,y)) for x in range(100,1200,140)])
+"
+-rw-r--r-- 1 root root 584349 Nov 17 22:51 /tmp/t10_play.png
+440 [(16, 17, 25), (115, 93, 98), (115, 84, 76), (105, 75, 67), (36, 23, 15), (111, 81, 75), (110, 80, 75), (79, 55, 51)]
+480 [(66, 74, 84), (40, 41, 60), (102, 73, 69), (114, 83, 77), (35, 22, 15), (116, 85, 76), (120, 87, 75), (106, 76, 70)]
+520 [(70, 77, 89), (77, 59, 63), (115, 83, 75), (119, 87, 79), (55, 48, 58), (115, 84, 76), (112, 81, 71), (131, 96, 84)]
+560 [(67, 75, 87), (112, 82, 75), (125, 91, 81), (116, 84, 76), (54, 48, 58), (118, 86, 78), (118, 86, 77), (122, 90, 80)]
+600 [(125, 125, 107), (114, 83, 76), (124, 91, 82), (116, 84, 77), (50, 38, 37), (128, 94, 82), (219, 188, 163), (125, 92, 81)]
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/t10_play.png').convert('RGB')
+w,h=im.size
+c=im.crop((0,0,w,633)).resize((110,42))
+px=list(c.getdata()); chars=' .:-=+*#%@'
+for y in range(42):
+    line=''
+    for x in range(110):
+        p=px[y*110+x]; v=(p[0]*.3+p[1]*.58+p[2]*.12)**0.7
+        line+=chars[min(9,int(v/11))]
+    print('%3d %s'%(y*633//42,line))
+EOF
+0 ---:::::::::::::::::::..-----------------------------------------------------......:::::::::::::::::::::::::::
+ 15 ----::::::::::::::::::. .:-------------------------------------------------:.......:::::::::::::::::::::::::::
+ 30 ----::::::::::::::::::.....::::::::::::-----------------------------------:........::::--:::-:::--::-::-:---:-
+ 45 ----:::::::::::..:::::........::::::::..--------------------------------:..........:::::::::::::::::::::::::::
+ 60 ----::::. .   ..   ......................------------------------------:......:....:::::::::::::::::::::::::::
+ 75 ----::.:.     .    ..................... .:----------------------------.....::.....:::::::::::::::::-:::::::::
+ 90 ::--::::..... ...  ...................... .:-----------------------::::....:.......::::--::--:::-:::--:::-:::-
+105    ...:::.   .................:..:..........:---------------------:..::.::....:....:::::::::::::::::::::::::::
+120          ..  ::..-..-:.::.:-.:-.:-:..........:---------------:::::...::....:.......:::::::::::::::::::::::::::
+135           ..       .......................... :--------------::::....::..::.....:.:::::-:::..::..::...::--::..
+150 .:. .        .:..:..::.::.::..:..::.::........ .-------------::::.:..::........::.::::::::::::::.:::::::::::::
+165 .:. :: :. .. .:..:..::.::.::..:..:-:::......... :-----------.........:....:::.....:::::::::-:...:..:::::::::::
+180                    .......... ..................:::::------:.........:..:.........:::::::::-:::.:..:::::::::-:
+195        .. .  .:: ::....:-..-:.-:.::.:-.............::------:.:::.....:............:::::::::-:::....:::::-:::-:
+211        ..  .  ............... ......................:------:.::::...::.:..........::::::::....:::..:::::::::--
+226 .             .. ............ ......................:------:.::::....:............:::::::......::..:::::.:::--
+241      :.    .. :-..-..-:.-:.-: -:.:-.:-.....::.......:-----:..::::.:..:...:........::::--:    ...: :-:::..::--:
+256                     ......... ..............    ......:::::..:.......:............:::::::..  .::: .:::::::::::
+271            .    .   ......... ...........::...........::::::.. . .................:::::. .:..:::. .:::::::::::
+286 ......................:::::::..:::::::::... .:.    ..:-::--::::::::::::..:::::....::::.......:::. .:::::::::::
+301 ...................................:::--......-----:::::::::::::::::::::::::--. .........:::::... ............
+316         ........    . .........::::-----:::::::::::.::::::::::::::::::::::::..           .::::::..............
+331 ...........................::..------::::::-------:::::::::::::::::::::::--:             .:::::: .:::::::.....
+346 .............................. ..:::::::------------::...:::::::::::::::::-:.         ......:::. .............
+361                           .. ...:::::::--------:::--:::..::::------:::::-----::.      :-: ..--:::.............
+376                            ..:::...::------::::::---::---:::::------::::::------:.             ::::::::.......
+391   ......::.              .:::.......:::::::::::::::.  .:....::::::::::::::::::::::......... ..::::::::::::::..
+406   .:::::...           .:::........:::::::::::::::::.       .::::::::::::::::::::::::::::::...:::::.....:::::::
+422   ......           .:::..........:::::::::::::::::::.      .:::::::::::::::::::::::::::::::........:::::::::::
+437       ......    .::::..........:::::::::::::::::::::.      .:::::::::::::::::::::::::::.:.......::::::::::::::
+452     ......::..::::............:::::::..:::....::::::.     .::::::::::::::::::::::::::...::::::..::::::::::::::
+467    .:.........:.............:::::.....::.:::::::::::.     ...::::::::::::::::::::::::::::.::::::::::::::::::::
+482   ......:.................:::......::::::::::::::::::. .......::::::::::::::::::::::::::::::::...:::::::::::::
+497   ......::..............::::....:::::::::::::::::::::. .......::::::::::::::::::::::::::::::::::::.....:::::::
+512  .......::.    .......:::...:::::::::::::::::::::::::. ......::::::::::::::::::::::::::::::::::::::::::.....::
+527 :::...:..:..............:::::::::::::::::::::::::::::.......::::::::::::::::::::::::::::::::::::::::::::::-::.
+542 ::.........:..:.....:::::::::::::::::::::::::::::::::::.....::::::::::::::::::::::::::::::::::::::::::::::-:::
+557 ....... ...:..:...:::::::::::::::::::::::::::::::::::::....:::::::::::::::::::::::::::::::::::::::::::::::::::
+572 ....... .. ...::::::::::::::::::::::::::::::::.......... .......::::::::::::::::::::::::::::::::::::::::::::::
+587 ........::...::::::::::::::::::::::::::::::::...................:::::::::::::::---::::::::::::::::::::::::::::
+602 .........::::::::::::::::::::::::::::::::::::::..........::::..:::::::::::::::::----::::::::::::::::::::::::::
+617 ..........:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::----:::::::::::::::::::::::::
+[0m
+[0m$ [0mcd /root/gta6-entry && for s in start end; do /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/t10_$s.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=$s&seed=1" 2>/tmp/t10-$s.log; ls -la /tmp/t10_$s.png; grep -i uncaught /tmp/t10-$s.log|head -3; done
+-rw-r--r-- 1 root root 165139 Nov 17 22:52 /tmp/t10_start.png
+-rw-r--r-- 1 root root 182015 Nov 17 22:52 /tmp/t10_end.png
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+for f in ['/tmp/t10_start.png','/tmp/t10_end.png']:
+    im=Image.open(f).convert('RGB'); w,h=im.size
+    print(f)
+    c=im.crop((0,0,w,633)).resize((96,30)); px=list(c.getdata()); chars=' .:-=+*#%@'
+    for y in range(30):
+        print(''.join(chars[min(9,int(((px[y*96+x][0]*.3+px[y*96+x][1]*.58+px[y*96+x][2]*.12)**0.7)/12))] for x in range(96)))
+    print()
+EOF
+/tmp/t10_start.png
+................................................................................................
+................................................................................................
+..............................................:.................................................
+..............................................::::...........................::.................
+..............................................::::.........................::::...........::....
+..............................................::::.......................::::::...........::::..
+:.................................::::........:::::.....................:::::::...........:::::.
+:::::::::::::::::::::::::::::::::::::::.......:::::.:..............::::::::::::...........::::::
+::::::::::::::::::::::::::::::::::::::::.......::::::.............:::::::::::-:..........:----::
+:::::::::::::::::::::::::::::::::::::::::......::::::.............:::::-------:..........:---:::
+:::::::::::::.......:::::::::::.......:::......:::-::.............:::::-------:..............:::
+:::::::::::::.....:.:::::.:::::........:::.....:::-::.............::::::------...............:::
+::::....:::::........::::::::::.......:::.:......::::..............:::::::----..............::::
+....                       ..        ..................................:::::::..............::::
+...........................                                      ..........:..:.............::::
+..........................................................                               .......
+........................................................................................        
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+................................................................................................
+
+/tmp/t10_end.png
+.................................................  .......................                ......
+     ...........................................    ....................             .....::::..
+.     ..........................................    ....................                  ......
+      ..........................................    ....................                  ......
+.  .  ..........................................    ....................                 ... .  
+      ..........................................    ....................                 ...    
+      .::::::::.............................. .     ....................                 ..     
+ .    .:::::::-:::::::::::::::::::. . .:..... .     ...................                  ..     
+      .:::::::::::::::::::::::::::... .:::::. .     .:::::.....:::.....                  :.     
+       ::::::::::::::::::::::::::::.. .:::::: ....  .:::::. ...:::. ..                  .:.     
+       ::::::::::::::::::::::::::::.. .:::--:...... ::::::. ...:::. ..                  .:.     
+       .:::::::::::::::::::::::::::...::--:::.:.....::::::... .::.......                .:      
+                      .-:-..: ::..-:.::.:::.::-....-:..-: ::. :: .-: :::.                       
+                .......:::..:.:::.::.::.:::.::-....:. ::: .:: ::..:: .::.                       
+      ..............................................                                            
+...........:::::::...:::.::::::::::::::::::::::::...                                            
+:::::::::::::::::::..:::.:::::::::::---:::::::....                                              
+:::::::::::::::::::..::::::::::-----------:::::......                                           
+.:::::::::::::............:::::::::::::::::...............                                      
+..:::..............................................   ..                                        
+...................................................                                             
+..................................................                                              
+......      ...................................                                                 
+...:..       ..............................                                                     
+ ..  . ..     .........................                                                         
+ ..    ..     .                                                                             ::. 
+  .          .                                                                           .....  
+   .        .                                                                           ....... 
+                                                                                        .......
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+for f in ['/tmp/t10_start.png','/tmp/t10_end.png']:
+    im=Image.open(f).convert('RGB')
+    print(f)
+    for y in [10,60,140,240,340,440,540,620]:
+        print(y,[im.getpixel((x,y)) for x in range(80,1240,160)])
+"
+/tmp/t10_start.png
+10 [(65, 45, 51), (64, 45, 50), (63, 44, 49), (61, 44, 49), (61, 44, 49), (94, 64, 45), (64, 45, 50), (65, 46, 51)]
+60 [(68, 48, 54), (67, 47, 53), (66, 47, 52), (87, 60, 42), (65, 46, 51), (95, 65, 46), (67, 47, 53), (58, 40, 28)]
+140 [(127, 80, 66), (118, 74, 65), (107, 69, 62), (114, 83, 61), (58, 40, 28), (97, 67, 47), (175, 122, 98), (184, 128, 99)]
+240 [(196, 134, 94), (141, 74, 37), (196, 134, 94), (157, 87, 45), (60, 41, 29), (100, 69, 48), (253, 182, 127), (93, 54, 32)]
+340 [(63, 40, 22), (64, 40, 22), (65, 40, 22), (68, 42, 23), (75, 46, 25), (89, 54, 29), (4, 2, 1), (4, 2, 1)]
+440 [(61, 38, 21), (61, 38, 21), (62, 39, 22), (64, 40, 22), (68, 42, 23), (77, 47, 25), (89, 53, 28), (100, 60, 32)]
+540 [(60, 38, 21), (60, 38, 21), (60, 38, 21), (61, 38, 21), (64, 40, 22), (70, 43, 23), (77, 47, 25), (85, 51, 27)]
+620 [(59, 37, 21), (59, 37, 21), (59, 37, 21), (60, 38, 21), (62, 39, 22), (66, 41, 23), (71, 44, 24), (77, 47, 25)]
+/tmp/t10_end.png
+10 [(68, 47, 53), (66, 46, 52), (64, 45, 51), (62, 44, 50), (62, 44, 50), (62, 44, 50), (9, 14, 23), (9, 13, 21)]
+60 [(70, 49, 54), (69, 48, 53), (67, 47, 53), (66, 46, 52), (66, 46, 52), (67, 46, 53), (10, 14, 23), (68, 48, 53)]
+140 [(9, 14, 26), (127, 80, 66), (113, 72, 64), (102, 66, 61), (98, 64, 60), (101, 65, 60), (10, 14, 24), (125, 78, 66)]
+240 [(6, 8, 14), (211, 148, 101), (205, 145, 99), (246, 194, 143), (205, 144, 98), (25, 38, 62), (10, 15, 24), (15, 22, 36)]
+340 [(105, 95, 99), (150, 122, 112), (137, 118, 114), (125, 116, 118), (0, 0, 0), (21, 27, 48), (16, 24, 44), (14, 22, 42)]
+440 [(57, 45, 52), (56, 46, 53), (57, 50, 58), (49, 46, 56), (29, 32, 49), (22, 27, 45), (18, 24, 43), (16, 23, 42)]
+540 [(13, 17, 24), (34, 32, 46), (32, 32, 47), (28, 30, 46), (23, 27, 44), (20, 25, 43), (18, 23, 42), (16, 22, 41)]
+620 [(28, 28, 44), (27, 28, 44), (25, 28, 44), (23, 27, 44), (20, 25, 43), (18, 24, 42), (17, 23, 41), (16, 22, 41)]
+[0m
+The start/end frames are being washed out by fog and background-texture handling. Let me build reliable sky domes and recompose both hero shots.
+[0m→ [0mRead game/src/shots.js[90m [limit=70, offset=60][0m
+[0m
+[0m← [0mEdit game/src/main.js
+Index: /root/gta6-entry/game/src/main.js
+===================================================================
+--- /root/gta6-entry/game/src/main.js
++++ /root/gta6-entry/game/src/main.js
+@@ -449,8 +449,10 @@
+     if (peds && peds.peds) for (let i = 0; i < peds.peds.length; i += 1) out.peds.push(project(peds.peds[i].group));
+     if (police && police.units) for (let i = 0; i < police.units.length; i += 1) out.units.push(project(police.units[i].group));
+     if (vehicles && vehicles.cars) for (let i = 0; i < vehicles.cars.length; i += 1) out.cars.push(project(vehicles.cars[i].group));
+     out.lights = (() => { let n = 0; scene.traverse((c) => { if (c.isLight) n += 1; }); return n; })();
++    out.calls = renderer.info.render.calls;
++    out.tris = renderer.info.render.triangles;
+     console.log('PROBE' + JSON.stringify(out));
+   }
+ } else {
+   if (hud) hud.setVisible(false);
+
+[0m
+Let me probe draw calls and then rewrite the start composition.
+[0m$ [0mcd /root/gta6-entry && for s in play start end; do /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/p_$s.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=$s&seed=1&dbg=probe" 2>/tmp/p-$s.log >/dev/null; grep -o 'PROBE{[^}]*}' /tmp/p-$s.log | head -1 | cut -c1-260; done
+PROBE{"vp":[1280,633],"player":[640,569,0.96],"peds":[null,[810,285,1],[563,273,1],null,[-3132,1579,0.83],[838,292,0.99],[562,273,1],null,null,[758,276,1],[563,277,1],null,[-43,445,0.97],[757,275,1],[577,271,1],null,[-125,510,0.97],[784,282,1],[560,275,1],null
+PROBE{"vp":[1280,633],"player":[525,607,1],"peds":[[1018,326,1],[1263,347,1],[-9997,4907,0.97],[1131,340,1],null,null,[351,315,1],[8047,2180,0.99],[588,432,1],[541,308,1],[675,409,1],[1418,468,1],[1757,904,1],[-93,415,1],[-328,428,1],null,[341,648,1],[547,304,
+PROBE{"vp":[1280,633],"player":[673,388,0.98],"peds":[[330,355,0.99],[267,372,0.99],null,null,null,null,null,null,null,null,null,null,null,null,null,[1919,264,1],null,null,null,null],"units":[],"cars":[null,null,null,null,null,null,null,null,null,null,null,[30
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+import re,json
+for s in ['play','start','end']:
+    txt=open('/tmp/p-%s.log'%s, errors='ignore').read()
+    m=re.search(r'PROBE(\{.*?\})\n', txt)
+    if not m:
+        m=re.search(r'PROBE(\{.*\})', txt)
+    try:
+        d=json.loads(m.group(1))
+        print(s, 'calls',d.get('calls'),'tris',d.get('tris'),'lights',d.get('lights'))
+    except Exception as e:
+        print(s,'parse fail',e, m.group(1)[-120:] if m else None)
+EOF
+play calls 364 tris 233347 lights 8
+start calls 451 tris 235592 lights 7
+end calls 98 tris 226016 lights 9
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -85,46 +85,53 @@
+ 
+ function goldenHour(scene) {
+   const THREE = getThree();
+   scene.background = makeSkyTexture(THREE, [
+-    [0, 0.0, '#1d2a4c'],
+-    [0, 0.26, '#33436b'],
+-    [0, 0.44, '#7d5f74'],
+-    [0, 0.58, '#c47a5c'],
+-    [0, 0.7, '#e8915a'],
+-    [0, 0.8, '#ffb066'],
+-    [0, 0.9, '#ffd7a0'],
+-    [0, 1.0, '#8a6248'],
++    [0, 0.0, '#141d38'],
++    [0, 0.22, '#243356'],
++    [0, 0.4, '#4b4a६e'.replace('६', '6')],
++    [0, 0.52, '#8a5f68'],
++    [0, 0.62, '#c2745a'],
++    [0, 0.72, '#e8925c'],
++    [0, 0.8, '#ffb877'],
++    [0, 0.88, '#ffd7a2'],
++    [0, 1.0, '#8a6046'],
+   ]);
+-  scene.fog = new THREE.FogExp2(0xc4865e, 0.0022);
++  // Linear haze: the towers at the far end of the avenue soften, the rooftop stays crisp.
++  scene.fog = new THREE.Fog(0xd08a5c, 260, 1250);
+   if (!scene.userData || !scene.userData.shotSun) {
+-    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffe8bc, fog: false });
+-    const sun = new THREE.Mesh(new THREE.SphereGeometry(30, 16, 12), sunMaterial);
+-    sun.position.set(210, 86, -640);
++    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfff0cf, fog: false });
++    const sun = new THREE.Mesh(new THREE.SphereGeometry(22, 16, 12), sunMaterial);
++    sun.position.set(-150, 62, -760);
+     scene.add(sun);
+-    const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xffb066, transparent: true, opacity: 0.24, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+-    const glow = new THREE.Mesh(new THREE.SphereGeometry(120, 20, 14), glowMaterial);
++    const glowMaterial = new THREE.MeshBasicMaterial({ color: 0xffb066, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
++    const glow = new THREE.Mesh(new THREE.SphereGeometry(96, 20, 14), glowMaterial);
+     glow.position.copy(sun.position);
+     scene.add(glow);
++    const haloMaterial = new THREE.MeshBasicMaterial({ color: 0xffc78a, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
++    const halo = new THREE.Mesh(new THREE.SphereGeometry(260, 20, 14), haloMaterial);
++    halo.position.copy(sun.position);
++    scene.add(halo);
+     scene.userData.shotSun = sun;
+   }
+   scene.traverse((child) => {
+     if (child.isPoints) child.visible = false;
+     if (child.isHemisphereLight) {
+-      child.color.setHex(0xffd3a2);
+-      child.groundColor.setHex(0x2a2018);
+-      child.intensity = 0.72;
++      child.color.setHex(0xffd9ae);
++      child.groundColor.setHex(0x3a2a1e);
++      child.intensity = 0.8;
+     } else if (child.isAmbientLight) {
+-      child.color.setHex(0xffb98a);
+-      child.intensity = 0.22;
++      child.color.setHex(0xffc39a);
++      child.intensity = 0.26;
+     } else if (child.isDirectionalLight) {
+-      child.color.setHex(0xffa860);
+-      child.intensity = 2.6;
+-      child.position.set(280, 190, -520);
+-      child.shadow.camera.left = -230;
+-      child.shadow.camera.right = 230;
+-      child.shadow.camera.top = 230;
+-      child.shadow.camera.bottom = -230;
++      child.color.setHex(0xffa55c);
++      child.intensity = 3.1;
++      child.position.set(-240, 140, -520);
++      child.shadow.camera.left = -260;
++      child.shadow.camera.right = 260;
++      child.shadow.camera.top = 260;
++      child.shadow.camera.bottom = -260;
++      child.shadow.camera.far = 1400;
+     }
+   });
+ }
+ 
+
+[0m
+Draw calls are well under budget (play 364, start 451, end 98). Now let me rewrite the start/end compositions properly.
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -87,9 +87,9 @@
+ const THREE = getThree();
+ scene.background = makeSkyTexture(THREE, [
+   [0, 0.0, '#141d38'],
+   [0, 0.22, '#243356'],
+-  [0, 0.4, '#4b4a६e'.replace('६', '6')],
++  [0, 0.4, '#4b4a6e'],
+   [0, 0.52, '#8a5f68'],
+   [0, 0.62, '#c2745a'],
+   [0, 0.72, '#e8925c'],
+   [0, 0.8, '#ffb877'],
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game && node --check src/shots.js && cd /root/gta6-entry && /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/u_start.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=start&seed=1" 2>/tmp/u.log; ls -la /tmp/u_start.png; python3 - <<'EOF'
+from PIL import Image
+im=Image.open('/tmp/u_start.png').convert('RGB')
+w,h=im.size
+c=im.crop((0,0,w,633)).resize((100,32)); px=list(c.getdata()); chars=' .:-=+*#%@'
+for y in range(32):
+    print(''.join(chars[min(9,int(((px[y*100+x][0]*.3+px[y*100+x][1]*.58+px[y*100+x][2]*.12)**0.72)/11))] for x in range(100)))
+EOF
+-rw-r--r-- 1 root root 172582 Nov 17 22:55 /tmp/u_start.png
+......................................................::::::::......  ..............................
+...................................................:::::::::::        ..............................
+..........................................       ..:::::::::::        ................ .....  ......
+..........................................         .::::::::::        :..............         ......
+..........................................         .::::::::::        ::.............         ......
+:.........................................         .::::::::::       .:::............         .....:
+::::::::::::::::::::::....................         .:::..            .:::::..:::::...        .::::::
+::::::::::::::::::::::::::::::::::::....::         .-:-:             .::::::::::::...        .::::::
+::::::::::::::::::::::::::::::::::::....::         .--=:             :----::::::::..         :::::::
+:::::::::::::---------::::::::::::::....::         .===:             :-----:::::::..         :---:::
+-------------:::::::::::::::-------:....::.        .===:             :-----------:..     .  .::::---
+-------------..............:----............       .===:             ------------:..    ::......:---
+-------------...............----.............      :===:             ------------:..    ::......:---
+:::.........................::::..............  ...::::.             .....:::::::...   .:........:::
+..................          ..    ............  ...::... .       ..................    .:...........
+...............................................                      ...........:..... .:...........
+..........................::::::::::::::::::::::::::::............                              ....
+..............................::::::::::::::::::::::::::::::::::::::....................            
+..................................:::::::::::::::::::::::::::::.....................................
+......................................:::::::::::::::::::::.........................................
+.............................................:::::::................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+im=Image.open('/tmp/u_start.png').convert('RGB')
+for y in [5,80,160,240,300,340,380,420,470,520,580,620]:
+    print(y,[im.getpixel((x,y)) for x in range(60,1240,150)])
+"
+5 [(65, 45, 51), (64, 45, 50), (62, 44, 49), (61, 44, 50), (61, 43, 49), (89, 69, 70), (63, 44, 50), (64, 45, 51)]
+80 [(70, 49, 54), (69, 48, 53), (68, 47, 53), (67, 47, 53), (14, 9, 7), (11, 8, 6), (67, 47, 53), (1, 1, 1)]
+160 [(150, 94, 73), (145, 90, 71), (138, 86, 69), (59, 39, 26), (15, 10, 7), (12, 8, 6), (140, 87, 70), (1, 1, 1)]
+240 [(208, 138, 92), (79, 43, 24), (208, 138, 92), (58, 30, 15), (16, 11, 8), (136, 123, 99), (208, 138, 92), (1, 1, 1)]
+300 [(87, 54, 31), (97, 60, 34), (114, 70, 38), (4, 3, 2), (4, 3, 2), (42, 26, 14), (125, 80, 49), (1, 1, 1)]
+340 [(83, 51, 30), (91, 56, 32), (104, 63, 36), (122, 75, 41), (128, 79, 43), (112, 68, 38), (95, 58, 33), (4, 3, 2)]
+380 [(79, 49, 29), (85, 53, 31), (96, 59, 33), (109, 66, 37), (113, 69, 38), (101, 62, 35), (88, 55, 31), (80, 50, 29)]
+420 [(76, 48, 28), (81, 50, 30), (89, 55, 32), (99, 60, 34), (101, 62, 35), (93, 57, 33), (83, 52, 30), (77, 48, 29)]
+470 [(73, 46, 28), (77, 48, 29), (82, 51, 30), (89, 55, 32), (90, 56, 32), (85, 53, 31), (78, 49, 29), (73, 46, 28)]
+520 [(71, 45, 27), (73, 46, 28), (77, 48, 29), (81, 51, 30), (82, 51, 30), (79, 49, 29), (74, 47, 28), (71, 45, 27)]
+580 [(68, 44, 27), (70, 45, 27), (72, 46, 28), (75, 47, 28), (75, 48, 28), (73, 46, 28), (70, 45, 27), (68, 44, 27)]
+620 [(67, 43, 26), (68, 44, 27), (70, 45, 27), (72, 46, 28), (72, 46, 28), (71, 45, 27), (69, 44, 27), (67, 43, 26)]
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -36,39 +36,56 @@
+ const LEAVES = [0x2f5a3a, 0x2a5236, 0x376443, 0x305d3d, 0x284f33];
+ 
+ /** The dusk dome: a big inverted sphere with a vertical gradient burning orange over the water. */
+ function makeSkyDome(THREE) {
+-  if (typeof document === 'undefined') return null;
++  const dome = new THREE.Mesh(new THREE.SphereGeometry(1600, 32, 24), new THREE.MeshBasicMaterial({ side: THREE.BackSide, fog: false, depthWrite: false }));
++  dome.position.set(0, -120, 0);
++  dome.renderOrder = -10;
++  dome.frustumCulled = false;
++  dome.userData.sky = true;
++  setSkyGradient(THREE, dome, 'dusk');
++  return dome;
++}
++
++/**
++ * Paint a vertical gradient onto the sky dome. The sphere's v runs from the south pole at 0 to the
++ * north pole at 1, so the horizon is v=0.5: all the interesting bands are squeezed into 0.5-0.7,
++ * which is exactly the slice a street-level camera can see above the rooftops.
++ */
++export function setSkyGradient(THREE, dome, kind) {
++  if (!dome || typeof document === 'undefined') return;
+   const canvas = document.createElement('canvas');
+   canvas.width = 8;
+   canvas.height = 512;
+   const context = canvas.getContext('2d');
+-  if (!context) return null;
++  if (!context) return;
+   const gradient = context.createLinearGradient(0, 0, 0, 512);
+-  // The sphere maps v=0 at the bottom pole and v=1 at the top, so the horizon sits at v~0.5:
+-  // warm bands must be just above that to burn behind the skyline.
+-  gradient.addColorStop(0.0, '#1a1620');
+-  gradient.addColorStop(0.42, '#4a3a3e');
+-  gradient.addColorStop(0.47, '#b5714f');
+-  gradient.addColorStop(0.5, '#ffb877');
+-  gradient.addColorStop(0.53, '#f7a167');
+-  gradient.addColorStop(0.58, '#c4785c');
+-  gradient.addColorStop(0.64, '#8a5f66');
+-  gradient.addColorStop(0.72, '#4d4763');
+-  gradient.addColorStop(0.82, '#2b3550');
+-  gradient.addColorStop(0.92, '#182238');
+-  gradient.addColorStop(1.0, '#101828');
++  const stops = kind === 'golden'
++    ? [
++        [0.0, '#1a1218'], [0.42, '#3a2a28'], [0.47, '#8d5a3e'], [0.5, '#ffc070'],
++        [0.52, '#ffb066'], [0.55, '#e08a58'], [0.6, '#8f5f68'], [0.66, '#54486e'],
++        [0.74, '#33405e'], [0.85, '#22304c'], [1.0, '#141d38'],
++      ]
++    : kind === 'blue'
++      ? [
++          [0.0, '#080c14'], [0.42, '#141d2e'], [0.47, '#33445e'], [0.5, '#7d8496'],
++          [0.53, '#4f6484'], [0.58, '#2f4468'], [0.66, '#1d2f4e'], [0.78, '#16233b'],
++          [0.9, '#111a2c'], [1.0, '#0a1220'],
++        ]
++      : [
++          [0.0, '#161220'], [0.4, '#2c2530'], [0.46, '#8a5a44'], [0.495, '#ffbb7a'],
++          [0.51, '#f0a066'], [0.535, '#c07a5e'], [0.57, '#7a5a6c'], [0.63, '#46486a'],
++          [0.7, '#2e3a58'], [0.8, '#1e2a44'], [0.9, '#161f34'], [1.0, '#0f1728'],
++        ];
++  for (let index = 0; index < stops.length; index += 1) gradient.addColorStop(stops[index][0], stops[index][1]);
+   context.fillStyle = gradient;
+   context.fillRect(0, 0, 8, 512);
+   const texture = new THREE.CanvasTexture(canvas);
+   texture.colorSpace = THREE.SRGBColorSpace;
+   texture.needsUpdate = true;
+-  const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide, fog: false, depthWrite: false });
+-  const dome = new THREE.Mesh(new THREE.SphereGeometry(1600, 24, 16), material);
+-  dome.position.set(0, -120, 0);
+-  dome.renderOrder = -10;
+-  dome.frustumCulled = false;
+-  return dome;
++  if (dome.material.map) dome.material.map.dispose();
++  dome.material.map = texture;
++  dome.material.needsUpdate = true;
+ }
+ 
+ /** Cheap seeded noise for the canvas textures, so two screenshot takes never differ. */
+ function textureRandom(seed) {
+
+[0m
+[0m← [0mEdit game/src/world.js
+Index: /root/gta6-entry/game/src/world.js
+===================================================================
+--- /root/gta6-entry/game/src/world.js
++++ /root/gta6-entry/game/src/world.js
+@@ -953,7 +953,7 @@
+   }
+ 
+   update(0);
+ 
+-  return { colliders, roads, sidewalks, buildings, palms, update };
++  return { colliders, roads, sidewalks, buildings, palms, update, skyDome };
+ }
+ 
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && grep -n "skyDome" world.js | head
+393:  const skyDome = makeSkyDome(THREE);
+394:  if (skyDome) scene.add(skyDome);
+957:  return { colliders, roads, sidewalks, buildings, palms, update, skyDome };
+[0m
+[0m✗ [0mEdit game/src/shots.js failed
+[91m[1mError: [0mNo changes to apply: oldString and newString are identical.
+[0m✗ [0mEdit game/src/shots.js failed
+[91m[1mError: [0mCould not find oldString in the file. It must match exactly, including whitespace, indentation, and line endings.
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && grep -n "setSky" shots.js
+(no output)
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -82,21 +82,21 @@
+   texture.needsUpdate = true;
+   return texture;
+ }
+ 
++function setSky(scene, kind) {
++  const THREE = getThree();
++  let dome = null;
++  scene.traverse((child) => {
++    if (child.userData && child.userData.sky) dome = child;
++  });
++  if (dome) setSkyGradient(THREE, dome, kind);
++  scene.background = new THREE.Color(kind === 'blue' ? 0x1b2b45 : kind === 'golden' ? 0xe8a066 : 0x33425e);
++}
++
+ function goldenHour(scene) {
+   const THREE = getThree();
+-  scene.background = makeSkyTexture(THREE, [
+-    [0, 0.0, '#141d38'],
+-    [0, 0.22, '#243356'],
+-    [0, 0.4, '#4b4a6e'],
+-    [0, 0.52, '#8a5f68'],
+-    [0, 0.62, '#c2745a'],
+-    [0, 0.72, '#e8925c'],
+-    [0, 0.8, '#ffb877'],
+-    [0, 0.88, '#ffd7a2'],
+-    [0, 1.0, '#8a6046'],
+-  ]);
++  setSky(scene, 'golden');
+   // Linear haze: the towers at the far end of the avenue soften, the rooftop stays crisp.
+   scene.fog = new THREE.Fog(0xd08a5c, 260, 1250);
+   if (!scene.userData || !scene.userData.shotSun) {
+     const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfff0cf, fog: false });
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -190,17 +190,9 @@
+ }
+ 
+ function blueHour(scene) {
+   const THREE = getThree();
+-  scene.background = makeSkyTexture(THREE, [
+-    [0, 0.0, '#080f1e'],
+-    [0, 0.3, '#101c34'],
+-    [0, 0.52, '#1b2c4a'],
+-    [0, 0.68, '#2f4460'],
+-    [0, 0.8, '#4a5a72'],
+-    [0, 0.9, '#7d7168'],
+-    [0, 1.0, '#2b2b31'],
+-  ]);
++  setSky(scene, 'blue');
+   scene.fog = new THREE.FogExp2(0x1a2740, 0.0032);
+   scene.traverse((child) => {
+     if (child.isHemisphereLight) {
+       child.color.setHex(0x3d5480);
+
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -140,8 +140,9 @@
+  * the camera sees are warm-lit and the shadows rake across the wet asphalt towards the harbour.
+  */
+ function streetDusk(scene) {
+   const THREE = getThree();
++  setSky(scene, 'dusk');
+   scene.fog = new THREE.FogExp2(0x243049, 0.0029);
+   scene.traverse((child) => {
+     if (child.isPoints) child.visible = false;
+     if (child.isHemisphereLight) {
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game/src && grep -n "^import\|setSkyGradient" shots.js | head
+92:  if (dome) setSkyGradient(THREE, dome, kind);
+[0m
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -1,8 +1,9 @@
+ // The staged screenshot scenes behind ?shot=start|play|end. Each one builds its scene from seeded
+ // values only, places the camera and every actor by hand, and then lets main.js hold it still: the
+ // first painted frame is already the frame the screenshot wants, so there is no loading screen and
+ // no drift between two takes of the same URL.
++import { setSkyGradient } from './world.js';
+ const THREE_COLOR = {
+   sky: '#2b3b64',
+   horizon: '#e8915a',
+   low: '#ffc57a',
+
+[0m
+[0m$ [0mcd /root/gta6-entry/game && node --check src/shots.js && node --check src/world.js && cd /root/gta6-entry && for s in start play end; do /root/.hermes/tools/chromium-1208/chrome-linux64/chrome --headless=new --no-sandbox --hide-scrollbars --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --disable-dev-shm-usage --window-size=1280,720 --virtual-time-budget=15000 --screenshot=/tmp/v_$s.png --enable-logging=stderr --v=0 "http://127.0.0.1:8731/index.html?shot=$s&seed=1" 2>/tmp/v-$s.log; ls -la /tmp/v_$s.png; grep -i uncaught /tmp/v-$s.log | head -3; done
+-rw-r--r-- 1 root root 170237 Nov 17 22:58 /tmp/v_start.png
+-rw-r--r-- 1 root root 583993 Nov 17 22:59 /tmp/v_play.png
+-rw-r--r-- 1 root root 173234 Nov 17 22:59 /tmp/v_end.png
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 - <<'EOF'
+from PIL import Image
+for f in ['/tmp/v_start.png','/tmp/v_play.png','/tmp/v_end.png']:
+    im=Image.open(f).convert('RGB'); w,h=im.size
+    print(f)
+    c=im.crop((0,0,w,633)).resize((100,30)); px=list(c.getdata()); chars=' .:-=+*#%@'
+    for y in range(30):
+        print(''.join(chars[min(9,int(((px[y*100+x][0]*.3+px[y*100+x][1]*.58+px[y*100+x][2]*.12)**0.72)/11))] for x in range(100)))
+    print()
+EOF
+/tmp/v_start.png
+..................................................................     .............................
+...........................................     ..............         ......................  .....
+.........................................         ............        ...............          .....
+.........................................          .:.........        ...............          .....
+.........................................          .:.........        ...............         ......
+..........................................         .:.........        ...............         ......
+..........................................         .:.:.             .::::...........         ......
+::::......................................         .::-:             .:::::..........        .:.::::
+::::::::::::::::::::::::::::::::::::.....:         .---:             .::::::::::::..         :::::::
+::::::::::::::::::::::::::::::::::::....::         .---:             :::::::::::::..         :::::::
+:::::::::::::..............:::::............       .===:             :-----:::::::..    ::.......:::
+-------------...............----.............      .===:             ------------:..    ::......:---
+::::.......::...............::::.............   ...:-::.             ...:::::::::...   .::.......:::
+.................           .. .. ............  ...::...         ..................    .:...........
+.................................................. ..                ................. .:...........
+..........................::::::::::::::::::::::::::::..............                            ....
+..............................::::::::::::::::::::::::::::::::::::::......................          
+..................................::::::::::::::::::::::::::::......................................
+.......................................:::::::::::::::::::..........................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+....................................................................................................
+
+/tmp/v_play.png
+---:::::::::::::::::..:----------------------------------------------:.....:::::::::::::::::::::::::
+---:::::::::::::::::. ..:---------:--------------------------------::......::::--:::-::--::-::----::
+----::::::::::.:::::......:::::::::.:-----------------------------:........:::::-:::::::-:::::::::::
+----:::: .  ...  .....................--------------------------:......:...:::::::::::::::::::::::::
+----::::.... ..  .................... .:---------------------::::...::.....::::--::--::---:--::--::-
+  ....::.. .::.:..::.::.::.-:.::........:------------------::.:::::....:...:::::::::::::::::::::::::
+         .........:..:..:..:..:...........-----------------...::...::......::::-:::.:::.:::.::--:::.
+.:  .    .. .:..:.::.::.::.::.::.::........:------------:::.:.::.....:..::.::::::::::::.:::::::-::::
+ .  . .. .. ......::.:..:.....:-::..........:---------:....:..::.:::::.....::::::::-:::::.::::::::::
+       . .. .:..:....::.::.::.::.::.........::::------:::::.::::..........:::::-::--::..:.--::--::-:
+       .  . .....................:.............:------:::::.::::...:......::::::::...:::..::::::::--
+    .:    ...::.:..-..-.:-.::.::.::.....:...:..:------.::::.:.::..........::::--:  ....:.:-:::.::---
+          .  ....................................:::::.:......::..........:::::::.. .:::.:::::::::::
+. ....................................:..........:::-:::...:::............:::::...:.:::: :::::::::::
+.....................:::::..::::::--:....:-::::::-----::::::---::::::--.........:::::::. ...........
+.........................:..:--------:---:----::----:::::::::::::::::..          .:::::..:..........
+.......................::::.:::---::------------:::::::::::::::::----.        ....:::::..:::::::::..
+                        ....::::::--====------=-:::::::------::::-----::..    :-:  .::.::...........
+  ........             ..::::...:------:::::---:.--:..::------::::::-----:. ..  ..  ..::::::::::....
+ .:::::.:.          .::::......:::::::::::::::.   .   .:::::::::::::::::::::::::::..::::::::::::::::
+  .....         ..:::........::::::::::::::::::.      .::::::::::::::::::::::::::::..:::::::::::::::
+    ...::::...::::.........::::::::::::::::::::.     .::::::::::::::::::::::::::::::::::::::::::::::
+   .::....:..::..........::::::::::::::::::::::.  .....:::::::::::::::::::::::::::::::::::::::::::::
+  .....::..............::::...::::::::::::::::::. ......::::::::::::::::::::::::::::::::::::::::::::
+ ......::...........::::::::::::::::::::::::::::. .....:::::::::::::::::::::::::::::::::::::::::::::
+:::::::.:.........::::::::::::::::::::::::::::::......::::::::::::::::::::::::::::::::::::::::::--::
+:.........:..:..::::::::::::::::::::::::::::::::::...:::::::::::::::::::::::::::::::::::::::::::::::
+....::.......:::::::::::::::::::::::::::::................::::::::::::::::::::::::::::::::::::::::::
+.......::..:::::::::::::::::::::::::::::::................::::::::::::::-=--::::::::::::::::::::::::
+........:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::-==-:::::::::::::::::::::::
+
+/tmp/v_end.png
+                                                    .                                               
+                                                  ....                                  .: :..::::. 
+.                                                 ....                                   . ..  ...  
+   .                                              ....                                              
+.  .                                              ....                                       . . .  
+                                                  ....                                        ..... 
+    .  .........                    ....       .......        ....                              .   
+ .  .  .......-:.........................     ........       .....  ....                     .      
+       ............................................ ......................                   .      
+       ...................................................................                  ..      
+       ....................................:::::::........................                  ..      
+       .................:.:.....::.:::.::::-::::::.........................                 ..      
+                       .=:-:.-.:-:.--:.-::-:-.---....--: -- .-- .-: :-: -:-.                        
+               ........:-:::.-.:--.:-:.-.:-::.-:-....-..::-:.:-..:- :-: :::.                        
+     ........::::::..:::.::::::::::::::::::::::::......      .   .                                  
+...::::::::::::::::..::::.::::::::::::::::::::::::::...        ..                                   
+::::::::::::-------:.:--:::-----------------:::::::.           ......                               
+::::::------------:::::::::::----==========---:::::.....       .......                              
+:::::::::::::::::::::::::::::::::--------::::::.......................                              
+..:::::::::::::.................::::::::::...........  ..............                               
+....................................................................                                
+.....:.............................................................                                 
+......      ....................................................                                    
+...:..        ................................................                                      
+..:. .  .     ..............................................                                        
+...     .     ..........................................                                       .::. 
+...          .......................................                                         .....  
+....        .....................................                                          ........ 
+........ .....................................                                             ......:. 
+..........................................
+[0m
+[0m$ [0mcd /root/gta6-entry && python3 -c "
+from PIL import Image
+for f in ['/tmp/v_start.png','/tmp/v_play.png','/tmp/v_end.png']:
+    im=Image.open(f).convert('RGB')
+    print(f)
+    for y in [5,40,100,160,220,280,340,400,470,540,600,625]:
+        print(' ',y,[im.getpixel((x,y)) for x in range(80,1240,145)])
+"
+/tmp/v_start.png
+  5 [(43, 26, 25), (43, 26, 25), (41, 25, 24), (41, 25, 24), (41, 25, 24), (69, 50, 45), (42, 25, 24), (43, 26, 24)]
+  40 [(45, 27, 25), (44, 27, 25), (43, 27, 25), (43, 26, 24), (70, 51, 45), (11, 7, 5), (43, 26, 25), (45, 27, 26)]
+  100 [(55, 33, 28), (46, 28, 26), (45, 28, 26), (45, 27, 25), (14, 10, 7), (11, 8, 6), (45, 28, 26), (1, 1, 1)]
+  160 [(109, 62, 43), (103, 59, 42), (97, 56, 40), (93, 54, 39), (15, 10, 7), (1, 1, 1), (127, 81, 62), (1, 1, 1)]
+  220 [(162, 97, 62), (56, 28, 13), (163, 98, 61), (70, 37, 19), (16, 11, 8), (8, 5, 4), (191, 123, 82), (1, 1, 1)]
+  280 [(26, 17, 10), (4, 3, 2), (118, 69, 36), (66, 34, 18), (73, 39, 21), (14, 9, 7), (101, 57, 29), (131, 121, 100)]
+  340 [(84, 52, 30), (92, 56, 32), (105, 64, 36), (123, 75, 41), (128, 79, 43), (112, 68, 38), (96, 59, 33), (4, 3, 2)]
+  400 [(78, 49, 29), (84, 52, 30), (93, 57, 33), (104, 63, 35), (107, 65, 36), (97, 60, 34), (86, 53, 31), (79, 49, 29)]
+  470 [(73, 46, 28), (77, 48, 29), (83, 51, 30), (89, 55, 32), (90, 56, 32), (85, 53, 31), (78, 49, 29), (74, 47, 28)]
+  540 [(70, 45, 27), (72, 46, 28), (76, 48, 28), (79, 49, 29), (80, 50, 29), (77, 48, 29), (73, 46, 28), (70, 45, 27)]
+  600 [(68, 44, 27), (69, 44, 27), (71, 45, 27), (73, 46, 28), (74, 47, 28), (72, 46, 28), (70, 45, 27), (68, 44, 27)]
+  625 [(67, 43, 26), (68, 44, 27), (70, 45, 27), (72, 46, 28), (72, 46, 28), (71, 45, 27), (69, 44, 27), (67, 43, 26)]
+/tmp/v_play.png
+  5 [(159, 95, 63), (142, 82, 53), (196, 167, 148), (196, 166, 147), (176, 146, 126), (176, 146, 125), (76, 40, 32), (162, 94, 61)]
+  40 [(174, 108, 73), (162, 98, 65), (172, 112, 86), (188, 156, 139), (166, 135, 117), (168, 136, 118), (72, 37, 29), (135, 66, 39)]
+  100 [(154, 87, 57), (36, 31, 27), (105, 65, 45), (175, 140, 125), (174, 139, 125), (141, 80, 51), (91, 53, 43), (138, 72, 43)]
+  160 [(2, 5, 12), (34, 29, 26), (53, 47, 45), (110, 108, 110), (197, 139, 121), (138, 78, 50), (85, 45, 36), (174, 102, 67)]
+  220 [(2, 4, 12), (29, 24, 22), (86, 57, 43), (35, 36, 44), (227, 151, 119), (153, 89, 59), (76, 41, 32), (144, 81, 52)]
+  280 [(4, 6, 12), (27, 23, 22), (81, 56, 44), (50, 47, 52), (128, 99, 96), (23, 14, 9), (158, 89, 57), (155, 87, 56)]
+  340 [(30, 38, 63), (31, 35, 55), (230, 197, 177), (236, 183, 159), (148, 114, 107), (121, 89, 81), (55, 25, 49), (207, 176, 156)]
+  400 [(76, 195, 107), (16, 17, 25), (52, 54, 76), (123, 93, 86), (26, 14, 6), (124, 92, 84), (123, 91, 84), (107, 78, 73)]
+  470 [(73, 80, 91), (32, 34, 53), (122, 90, 83), (111, 81, 73), (35, 22, 15), (113, 83, 76), (122, 89, 82), (111, 81, 75)]
+  540 [(74, 81, 92), (99, 72, 69), (111, 80, 71), (113, 83, 76), (54, 48, 58), (116, 85, 77), (113, 81, 71), (120, 88, 79)]
+  600 [(115, 124, 136), (116, 85, 77), (118, 86, 78), (116, 84, 77), (50, 38, 37), (131, 96, 83), (219, 188, 163), (130, 96, 85)]
+  625 [(66, 52, 58), (124, 91, 80), (115, 84, 76), (126, 92, 82), (130, 95, 82), (133, 97, 83), (219, 189, 163), (134, 98, 85)]
+/tmp/v_end.png
+  5 [(5, 12, 29), (5, 12, 28), (5, 12, 28), (5, 12, 28), (19, 28, 46), (5, 12, 27), (5, 12, 27), (9, 13, 21)]
+  40 [(5, 13, 31), (5, 13, 30), (5, 12, 29), (5, 12, 28), (19, 28, 47), (5, 12, 28), (5, 12, 28), (9, 13, 21)]
+  100 [(10, 19, 36), (8, 18, 37), (6, 14, 31), (5, 13, 30), (19, 29, 47), (5, 13, 30), (5, 13, 30), (9, 13, 21)]
+  160 [(8, 13, 25), (20, 36, 64), (18, 32, 58), (25, 37, 61), (19, 29, 48), (26, 39, 63), (19, 28, 47), (9, 13, 22)]
+  220 [(6, 8, 14), (36, 59, 95), (35, 58, 93), (25, 37, 61), (48, 56, 72), (26, 39, 63), (19, 29, 47), (9, 13, 22)]
+  280 [(1, 1, 2), (1, 1, 2), (58, 55, 46), (48, 46, 47), (28, 29, 35), (255, 233, 168), (128, 121, 97), (15, 24, 45)]
+  340 [(105, 95, 99), (147, 120, 111), (142, 119, 114), (134, 122, 120), (28, 27, 24), (25, 30, 50), (18, 25, 46), (15, 23, 43)]
+  400 [(65, 181, 100), (79, 60, 60), (87, 72, 70), (117, 100, 89), (43, 42, 56), (27, 31, 49), (20, 26, 45), (17, 23, 43)]
+  470 [(39, 43, 51), (46, 40, 50), (45, 41, 52), (44, 42, 53), (30, 32, 48), (23, 28, 45), (20, 25, 43), (17, 23, 42)]
+  540 [(13, 17, 24), (34, 32, 46), (32, 32, 47), (30, 31, 47), (24, 28, 45), (21, 26, 44), (19, 24, 42), (17, 23, 42)]
+  600 [(77, 83, 93), (28, 29, 44), (27, 29, 44), (25, 28, 44), (22, 26, 44), (20, 24, 43), (18, 23, 42), (17, 23, 41)]
+  625 [(28, 28, 44), (27, 28, 44), (25, 28, 44), (24, 27, 44), (21, 25, 43), (19, 24, 42), (18, 23, 41), (17, 22, 41)]
+[0m
+The start camera sits inside city blocks (black geometry). Let me rebuild that shot properly with the camera above the city.
+[0m← [0mEdit game/src/shots.js
+Index: /root/gta6-entry/game/src/shots.js
+===================================================================
+--- /root/gta6-entry/game/src/shots.js
++++ /root/gta6-entry/game/src/shots.js
+@@ -307,61 +307,75 @@
+ 
+ /** Four hero towers against the sky, plus a rooftop deck the camera stands on. */
+ function buildHeroSkyline(scene, camera) {
+   const THREE = getThree();
+-  const detail = new THREE.MeshStandardMaterial({ color: 0x2b3444, roughness: 0.72, metalness: 0.25 });
+-  const silhouette = new THREE.MeshStandardMaterial({ color: 0x1d2634, roughness: 0.95, metalness: 0.05 });
+-  const windowMaterial = new THREE.MeshBasicMaterial({ color: 0xffcf8a, transparent: true, opacity: 0.75 });
++  const detail = new THREE.MeshStandardMaterial({ color: 0x33405a, roughness: 0.7, metalness: 0.3 });
++  const silhouette = new THREE.MeshStandardMaterial({ color: 0x272f45, roughness: 0.95, metalness: 0.05 });
++  const windowMaterial = new THREE.MeshBasicMaterial({ color: 0xffcf8a, transparent: true, opacity: 0.85, fog: false });
++  const warmWindow = new THREE.MeshBasicMaterial({ color: 0xffe2ad, transparent: true, opacity: 0.95, fog: false });
+   const towers = [
+-    [-120, -250, 46, 78, 150],
+-    [10, -330, 54, 64, 176],
+-    [140, -270, 40, 70, 132],
+-    [-12, -180, 34, 44, 96],
++    [-170, -420, 54, 78, 172, detail],
++    [0, -520, 62, 70, 198, detail],
++    [168, -430, 46, 74, 150, silhouette],
++    [-64, -330, 38, 50, 112, detail],
++    [96, -300, 30, 44, 88, silhouette],
+   ];
+   for (let index = 0; index < towers.length; index += 1) {
+     const tower = towers[index];
+-    const body = new THREE.Mesh(new THREE.BoxGeometry(tower[2], tower[4], tower[3]), index < 2 ? detail : silhouette);
+-    body.position.set(tower[0], tower[4] / 2 - 6, tower[1]);
++    const body = new THREE.Mesh(new THREE.BoxGeometry(tower[2], tower[4], tower[3]), tower[5]);
++    body.position.set(tower[0], tower[4] / 2 - 4, tower[1]);
+     scene.add(body);
+-    // Vertical bands of lit windows so the towers read as buildings, not slabs.
+-    const bands = Math.max(2, Math.floor(tower[4] / 14));
+-    for (let band = 0; band < bands; band += 1) {
+-      const strip = new THREE.Mesh(new THREE.BoxGeometry(tower[2] * 0.72, 1.1, 0.5), windowMaterial);
+-      strip.position.set(tower[0], 10 + band * 14, tower[1] + tower[3] / 2 + 0.28);
+-      scene.add(strip);
++    const crown = new THREE.Mesh(new THREE.BoxGeometry(tower[2] * 0.5, 12, tower[3] * 0.5), tower[5]);
++    crown.position.set(tower[0], tower[4] + 2, tower[1]);
++    scene.add(crown);
++    // Rows of lit windows on the face the camera looks at, thinning towards the top.
++    const rows = Math.floor(tower[4] / 11);
++    const cols = Math.max(2, Math.floor(tower[2] / 9));
++    for (let row = 1; row < rows; row += 1) {
++      for (let col = 0; col < cols; col += 1) {
++        if ((row * 7 + col * 13 + index * 5) % 5 < 2) continue;
++        const strip = new THREE.Mesh(new THREE.BoxGeometry(4.4, 1.4, 0.4), (row + col) % 9 === 0 ? warmWindow : windowMaterial);
++        strip.position.set(
++          tower[0] - tower[2] / 2 + 5 + col * 9,
++          9 + row * 11,
++          tower[1] + tower[3] / 2 + 0.3,
++        );
++        scene.add(strip);
++      }
+     }
+   }
+ 
+-  // The rooftop the camera stands on: a deck, a parapet at the drop, vents and an antenna.
+-  const deckMaterial = new THREE.MeshStandardMaterial({ color: 0x565a60, roughness: 0.95 });
+-  const trimMaterial = new THREE.MeshStandardMaterial({ color: 0x393d44, roughness: 0.8, metalness: 0.3 });
+-  const deck = new THREE.Mesh(new THREE.BoxGeometry(120, 2.2, 96), deckMaterial);
+-  deck.position.set(34, 48, 124);
++  // The rooftop the camera stands on, high above every city roof so nothing clips the lens.
++  const deckMaterial = new THREE.MeshStandardMaterial({ color: 0x5e6068, roughness: 0.95 });
++  const trimMaterial = new THREE.MeshStandardMaterial({ color: 0x3d4048, roughness: 0.8, metalness: 0.3 });
++  const deck = new THREE.Mesh(new THREE.BoxGeometry(150, 3, 130), deckMaterial);
++  deck.position.set(2, 89, 280);
+   deck.receiveShadow = true;
+   scene.add(deck);
+-  const parapet = new THREE.Mesh(new THREE.BoxGeometry(120, 1.1, 0.8), trimMaterial);
+-  parapet.position.set(34, 49.6, 76.4);
++  const parapet = new THREE.Mesh(new THREE.BoxGeometry(150, 1.3, 0.9), trimMaterial);
++  parapet.position.set(2, 91.2, 215.4);
+   scene.add(parapet);
+-  const parapetLip = new THREE.Mesh(new THREE.BoxGeometry(120, 0.16, 1.4), trimMaterial);
+-  parapetLip.position.set(34, 50.2, 76.4);
+-  scene.add(parapetLip);
+-  for (let index = 0; index < 3; index += 1) {
+-    const vent = new THREE.Mesh(new THREE.BoxGeometry(7, 2.6, 5), trimMaterial);
+-    vent.position.set(-6 + index * 26, 50.5, 138 + index * 8);
++  const lip = new THREE.Mesh(new THREE.BoxGeometry(150, 0.18, 1.6), trimMaterial);
++  lip.position.set(2, 91.95, 215.4);
++  scene.add(lip);
++  for (let index = 0; index < 4; index += 1) {
++    const vent = new THREE.Mesh(new THREE.BoxGeometry(8, 3, 6), trimMaterial);
++    vent.position.set(-34 + index * 24, 92, 272 - index * 5);
+     vent.castShadow = true;
+     scene.add(vent);
+   }
+-  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 14, 8), trimMaterial);
+-  mast.position.set(84, 56, 146);
++  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.34, 18, 8), trimMaterial);
++  mast.position.set(62, 99, 300);
+   scene.add(mast);
+-  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.6, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff4a3a, fog: false }));
+-  beacon.position.set(84, 63.3, 146);
++  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff4a3a, fog: false }));
++  beacon.position.set(62, 108.2, 300);
++  beacon.userData.beacon = true;
+   scene.add(beacon);
+ 
+-  camera.position.set(46, 55.2, 112);
+-  camera.lookAt(-34, 20, -90);
++  camera.position.set(2, 96.4, 226);
++  camera.lookAt(-6, 28, -160);
+   if (camera.isPerspectiveCamera) {
+-    camera.fov = 52;
++    camera.fov = 56;
+     camera.updateProjectionMatrix();
+   }
+ }
+ 
+
+[0m
+chunk-f rc=143
