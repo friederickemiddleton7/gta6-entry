@@ -1,41 +1,157 @@
-// A working gta6-01 entry (Node 22, standard library only): the game is this directory's
-// game/ folder, plain static files a desktop browser loads offline (game/index.html and its ES
-// modules, no library and no network request), and the program hands it in. It copies game/ and
-// screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the
-// judge reads, with the vendored make.fun library. Only the plumbing, not an open world: Block
-// Dodger, a plain 2D canvas game where a paddle dodges falling blocks and catches coins, with a
-// title screen, score, lives and levels, game over and restart, flat colours and no sound. Build
-// your own open-world crime game in its place (three.js or any library you vendor under game/),
-// put your 3 or 4 PNG or JPEG screenshots in screenshots/ (the first by name is the cover) and run it.
+// gta6-01 entrypoint — the building agent's own rewrite.
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// This file is the make.fun entrypoint: it packages the playable game
+// (the static game/ folder beside this file) plus its screenshots into the
+// output directory the grader reads, and writes the dossier.json summary the
+// judge evaluates. It runs under plain Node 22 with only the standard library
+// and the vendored make.fun helper (vendor/makefun-game.ts), no build, no
+// network, no third-party dependency.
+//
+// The pipeline is deliberately split into small named steps so the flow is
+// readable:
+//   1. resolveOutputDir   — MAKEFUN_OUTPUT_DIR or /output when unset.
+//   2. validateScreenshots — refuse a bad screenshot set before we copy anything.
+//   3. assemble            — copy game/ and screenshots/ into the output dir.
+//   4. writeDossier        — build dossier.json from what we copied.
+//   5. report             — one summary line on stdout.
+//
+// Local development (outside the grader): point MAKEFUN_OUTPUT_DIR at a
+// scratch dir and run `node main.ts`. Serve the result with `node serve.ts`.
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+/** This source file's own directory (the repository root). */
+const HERE = fileURLToPath(new URL('.', import.meta.url));
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+/** The output directory: the grader's env var when present, else /output. */
+const OUT = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in game/ or 48 MiB of game
-// files, in all, or a path under game/ over 1000 bytes: game/ counts beside /output's own 1000-entry cap, its
-// screenshots/ and dossier.json).
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    game_max_files: 993,
-    game_max_bytes: 50331648,
-    game_path_max_bytes: 1000,
-  }),
-);
+/** Subfolders beside this file that make up the entry. */
+const GAME_DIR = 'game';
+const SHOTS_DIR = 'screenshots';
+
+/** The screenshot set the gate accepts: three or four images, each small. */
+const MIN_SHOTS = 3;
+const MAX_SHOTS = 4;
+const MAX_SHOT_BYTES = 262144;
+
+/** The dossier caps, matching the bounty's gate.json (reference/gate.json). */
+const DOSSIER_CAPS = {
+  text_max_bytes: 163840,
+  screenshots: { max: 4, max_bytes: 262144 },
+  game_max_files: 993,
+  game_max_bytes: 50331648,
+  game_path_max_bytes: 1000,
+} as const;
+
+/**
+ * Normalize an output path: the env var when set, otherwise /output.
+ * Whitespace-only or empty values are treated as unset.
+ */
+function resolveOutputDir(): string {
+  const fromEnv = process.env.MAKEFUN_OUTPUT_DIR?.trim();
+  return fromEnv && fromEnv.length > 0 ? fromEnv : '/output';
+}
+
+/** Recursively collect every regular file under `root`, as relative paths. */
+function listFilesUnder(root: string): string[] {
+  const found: string[] = [];
+  const scan = (dir: string, rel: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const childRel = rel === '' ? entry.name : `${rel}/${entry.name}`;
+      if (entry.isDirectory()) {
+        scan(join(dir, entry.name), childRel);
+      } else if (entry.isFile()) {
+        found.push(childRel);
+      }
+    }
+  };
+  scan(root, '');
+  return found.sort();
+}
+
+/**
+ * Validate the screenshots/ folder *before* any copy: it must hold between
+ * MIN_SHOTS and MAX_SHOTS image files and each must be at most
+ * MAX_SHOT_BYTES bytes. On any failure this throws a specific error naming
+ * exactly what is wrong (missing folder, wrong count, an oversized file), so
+ * a broken entry fails loudly rather than shipping a half-built output.
+ */
+function validateScreenshots(): string[] {
+  const shotsDir = join(HERE, SHOTS_DIR);
+  if (!existsSync(shotsDir) || !statSync(shotsDir).isDirectory()) {
+    throw new Error(
+      `${SHOTS_DIR}/ is missing beside main.ts: an entry hands in ${MIN_SHOTS}–${MAX_SHOTS} renders of its game, the first by name the cover.`,
+    );
+  }
+
+  const names = readdirSync(shotsDir)
+    .filter((name) => !name.startsWith('.'))
+    .sort();
+
+  if (names.length < MIN_SHOTS) {
+    throw new Error(
+      `${SHOTS_DIR}/ holds ${names.length} file(s); the gate needs at least ${MIN_SHOTS} screenshots.`,
+    );
+  }
+  if (names.length > MAX_SHOTS) {
+    throw new Error(
+      `${SHOTS_DIR}/ holds ${names.length} files; the gate allows at most ${MAX_SHOTS} screenshots.`,
+    );
+  }
+
+  for (const name of names) {
+    const size = statSync(join(shotsDir, name)).size;
+    if (size > MAX_SHOT_BYTES) {
+      throw new Error(
+        `${SHOTS_DIR}/${name} is ${size} bytes, over the ${MAX_SHOT_BYTES}-byte limit.`,
+      );
+    }
+  }
+
+  return names;
+}
+
+/** Copy game/ and screenshots/ beside this file into the output directory. */
+function copyAssets(): void {
+  mkdirSync(OUT, { recursive: true });
+
+  cpSync(join(HERE, GAME_DIR), join(OUT, GAME_DIR), { recursive: true });
+
+  mkdirSync(join(OUT, SHOTS_DIR), { recursive: true });
+  cpSync(join(HERE, SHOTS_DIR), join(OUT, SHOTS_DIR), { recursive: true });
+}
+
+/** Write dossier.json from the assembled output directory. */
+function writeDossier(): void {
+  const dossier = buildDossier(OUT, DOSSIER_CAPS);
+  writeFileSync(join(OUT, 'dossier.json'), dossier);
+}
+
+/** Print the one summary line the grader and I both read. */
+function report(gameFileCount: number, shotCount: number): void {
+  console.log(
+    `packaged ${gameFileCount} game file(s) and ${shotCount} screenshot(s) into ${OUT}`,
+  );
+}
+
+function main(): void {
+  const shots = validateScreenshots();
+  copyAssets();
+  writeDossier();
+  const gameFiles = listFilesUnder(join(OUT, GAME_DIR));
+  report(gameFiles.length, shots.length);
+}
+
+main();
